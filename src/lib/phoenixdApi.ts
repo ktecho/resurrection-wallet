@@ -190,7 +190,106 @@ export async function decode_bolt12_offer(offer: string) {
   if (response.status !== 200) {
     throw new Error("Failed to decode a bolt12 offer");
   } else {
-    console.debug('decode_offer_bolt12:', response);
+    console.debug('decode_bolt12_offer:', response);
+    return await response.json();
+  }
+}
+
+export async function pay_bolt11_invoice(invoice: string, amountSat: number) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("invoice", invoice);
+  if (amountSat) params.append("amountSat", amountSat.toString());
+  
+  const response = await fetch(`http://${host}:${port}/payinvoice`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to pay a bolt11 invoice");
+  } else {
+    console.debug('pay_bolt11_invoice:', response);
+    return await response.json();
+  }
+}
+
+export async function pay_bolt12_offer(offer: string, amountSat: number, message: string) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("offer", offer);
+  if (amountSat) params.append("amountSat", amountSat.toString());
+  if (message) params.append("message", message);
+  
+  const response = await fetch(`http://${host}:${port}/payoffer`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to pay a bolt12 offer");
+  } else {
+    console.debug('pay_bolt12_offer:', response);
+    return await response.json();
+  }
+}
+
+export async function pay_lightning_address(address: string, amountSat: number, message: string) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("address", address);
+  if (amountSat) params.append("amountSat", amountSat.toString());
+  if (message) params.append("message", message);
+  
+  const response = await fetch(`http://${host}:${port}/payoffer`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to pay a Lightning Address");
+  } else {
+    console.debug('pay_lightning_address:', response);
+    return await response.json();
+  }
+}
+
+export async function pay_onchain_address(address: string, amountSat: number, feerateSatByte: number) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("address", address);
+  if (amountSat) params.append("amountSat", amountSat.toString());
+  if (feerateSatByte) params.append("feerateSatByte", feerateSatByte);
+
+  const response = await fetch(`http://${host}:${port}/payoffer`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to pay an onchain address");
+  } else {
+    console.debug('pay_onchain_address:', response);
     return await response.json();
   }
 }
