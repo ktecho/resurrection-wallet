@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import {formatDate} from "$lib/utils";
-  import { decode_invoice_bolt11, decode_offer_bolt12 } from '$lib/phoenixdApi';
+  import { decode_bolt11_invoice, decode_bolt12_offer } from '$lib/phoenixdApi';
 
   const dispatch = createEventDispatcher();
 
@@ -32,15 +32,15 @@
     if (paymentType !== 'Lightning Address') {
       try {
         console.debug('Decoding invoice:', invoiceInput);
-        decodedData = await decode_invoice_bolt11(invoiceInput);
+        decodedData = await decode_bolt11_invoice(invoiceInput);
         console.debug('Decoded invoice:', decodedData);
         paymentType = 'BOLT11';
       } catch {
         try {
-          decodedData = await decode_offer_bolt12(invoiceInput);
+          decodedData = await decode_bolt12_offer(invoiceInput);
           paymentType = 'BOLT12';
         } catch {
-          console.error('Invalid input: neither BOLT11 nor BOLT12');
+          console.error('Invalid input: neither Lightning Address nor BOLT11 nor BOLT12');
           return;
         }
       }
@@ -52,7 +52,6 @@
       let whenExpires = new Date(decodedData.timestampSeconds * 1000 + decodedData.expirySeconds * 1000);
       expiryDate = formatDate(whenExpires);
     } else if (paymentType === 'BOLT12') {
-      // Ajusta esto según la estructura real de la respuesta de decode_offer_bolt12
 //      amount = decodedData.amount ? decodedData.amount.toString() : '';
 //      message = decodedData.description || '';
     }

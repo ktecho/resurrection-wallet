@@ -149,7 +149,7 @@ export async function check_payment(paymentHash: string) {
   }
 }
 
-export async function decode_invoice_bolt11(invoice: string) {
+export async function decode_bolt11_invoice(invoice: string) {
   const headers = get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
@@ -167,12 +167,12 @@ export async function decode_invoice_bolt11(invoice: string) {
   if (response.status !== 200) {
     throw new Error("Failed to decode a bolt11 invoice");
   } else {
-    console.debug('decode_invoice_bolt11:', response);
+    console.debug('decode_bolt11_invoice:', response);
     return await response.json();
   }
 }
 
-export async function decode_offer_bolt12(offer: string) {
+export async function decode_bolt12_offer(offer: string) {
   const headers = get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
