@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import Setup from "$lib/components/Setup.svelte";
+  import {formatDate} from "$lib/utils";
   import {
     get_balance_sats,
     get_incoming_payments,
@@ -13,10 +14,10 @@
   import WebSocket from "@tauri-apps/plugin-websocket";
 
   let balanceSats = 0;
-  let usdPrice = 50000; // TODO: Get actual BTC price in fiat currency
+  let usdPrice: number = 50000; // TODO: Get actual BTC price in fiat currency
   let isRefreshing = false;
   let showSatoshis = true;
-  let selectedFiat = "USD"; // This will be controlled by the Setup component
+  let selectedFiat: string = "USD"; // This will be controlled by the Setup component
   let showSetup = false;
 
   let allTransactions = [];
@@ -105,17 +106,6 @@
     return description.length > maxLength
       ? description.slice(0, maxLength) + "..."
       : description;
-  }
-
-  function formatDate(timestamp) {
-    return new Date(timestamp).toLocaleString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
   }
 
   function formatAmount(amount) {

@@ -14,6 +14,7 @@ Features:
 - [ ] Auto-update Phoenixd
 - [ ] Manage the phoenixd process better
     - [ ] Detect if Phoenixd is running
+    - [ ] Kill Phoenixd when the app is closed
 - [ ] Detect WebSocket disconnections / manage reconnection
 
 ## Tech Stack

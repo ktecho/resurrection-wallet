@@ -149,6 +149,52 @@ export async function check_payment(paymentHash: string) {
   }
 }
 
+export async function decode_invoice_bolt11(invoice: string) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("invoice", invoice);
+  
+  const response = await fetch(`http://${host}:${port}/decodeinvoice`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to decode a bolt11 invoice");
+  } else {
+    console.debug('decode_invoice_bolt11:', response);
+    return await response.json();
+  }
+}
+
+export async function decode_offer_bolt12(offer: string) {
+  const headers = get_auth_headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+
+  const params = new URLSearchParams();
+  params.append("offer", offer);
+
+  const response = await fetch(`http://${host}:${port}/decodeoffer`, {
+    method: "POST",
+    headers: headers,
+    body: params,
+  });
+
+  console.debug(response.status + ' - ' + response.statusText);
+
+  if (response.status !== 200) {
+    throw new Error("Failed to decode a bolt12 offer");
+  } else {
+    console.debug('decode_offer_bolt12:', response);
+    return await response.json();
+  }
+}
+
 export async function setupPaymentsWebSocket(): Promise<WebSocket> {
   let ws: WebSocket;
   let options = {

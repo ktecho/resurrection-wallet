@@ -27,7 +27,7 @@
   async function changeNetwork() {
     isLoading = true;
 
-//    try {
+    try {
       // Kill the current phoenixd process
       await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
 
@@ -43,7 +43,6 @@
       await get_node_info_and_set_network();
       isLoading = false;
 
-      /*
     } catch (e) {
       console.error("Error changing network:", e);
     } finally {
@@ -56,7 +55,6 @@
       }
       console.log("After setting isLoading to false:", isLoading);
     }
-      */
   }
 
   async function get_node_info_and_set_network() {
@@ -75,7 +73,6 @@
     try {
       await get_node_info_and_set_network();
     } finally {
-      console.log("SALIENDO POR EL FINALLY DE ONMOUNT");
       isLoading = false;
     }
   });
