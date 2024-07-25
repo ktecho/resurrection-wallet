@@ -1,27 +1,88 @@
-<script>
-  import { createEventDispatcher, onMount } from 'svelte';
-  import {formatDate} from "$lib/utils";
-  import { decode_bolt11_invoice, decode_bolt12_offer } from '$lib/phoenixdApi';
+<script lang="ts">
+  import { createEventDispatcher, onMount } from "svelte";
+  import { formatDate } from "$lib/utils";
+  import { decode_bolt11_invoice, decode_bolt12_offer } from "$lib/phoenixdApi";
+  import { invoke } from "@tauri-apps/api/core";
+  import { listen } from "@tauri-apps/api/event";
+    import { hide } from "@tauri-apps/api/app";
+
+  let videoElement;
+  let canvasElement;
+  let canvasContext;
+  let scanning = false;
 
   const dispatch = createEventDispatcher();
 
-  let invoiceInput = '';
+  let invoiceInput = "";
   let decodedData = null;
   let paymentType = null;
-  let amount = '';
-  let message = '';
-  let expiryDate = '';
+  let amount = "";
+  let message = "";
+  let expiryDate = "";
   let showPreview = false;
 
+  function hideImage() {
+    document.getElementById("qr-image").style.display = "none";
+  }
+  function showImage() {
+    document.getElementById("qr-image").style.display = "block";
+  }
+
+  function showErrorMessage(message: string) {
+    document.getElementById("error-message").innerText = message;
+  }
+  function hideErrorMessage() {
+    document.getElementById("error-message").innerText = "";
+  }
+
+  async function stopCamera() {
+    scanning = false;
+    await invoke("stop_camera");
+  }
+
+  async function scanQR() {
+    scanning = true;
+
+    const canvas = document.getElementById("qr-image");
+    const ctx = canvas.getContext("2d");
+
+    listen("camera-frame", (event) => {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = "data:image/jpeg;base64," + event.payload;
+    });
+
+    listen("qr-detected", (event) => {
+      console.log("QR Code detected:", event.payload);
+
+      hideImage();
+
+      invoiceInput = event.payload;
+      previewPayment();
+    });
+
+    try {
+      const resultado = await invoke("start_camera");
+      console.log(resultado);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
   function closeModal() {
-    dispatch('close');
+    stopCamera();
+    dispatch("close");
   }
 
   async function handleInputChange() {
-    if (invoiceInput.includes('@')) {
-      paymentType = 'Lightning Address';
+    if (invoiceInput.includes("@")) {
+      paymentType = "Lightning Address";
       showPreview = true;
-    } else if (invoiceInput.trim() !== '') {
+    } else if (invoiceInput.trim() !== "") {
       showPreview = true;
     } else {
       showPreview = false;
@@ -29,33 +90,41 @@
   }
 
   async function previewPayment() {
-    if (paymentType !== 'Lightning Address') {
+    hideErrorMessage();
+
+    if (paymentType !== "Lightning Address") {
       try {
-        console.debug('Decoding invoice:', invoiceInput);
+        console.debug("Decoding invoice:", invoiceInput);
         decodedData = await decode_bolt11_invoice(invoiceInput);
-        console.debug('Decoded invoice:', decodedData);
-        paymentType = 'BOLT11';
+        console.debug("Decoded invoice:", decodedData);
+        paymentType = "BOLT11";
       } catch {
         try {
           decodedData = await decode_bolt12_offer(invoiceInput);
-          paymentType = 'BOLT12';
+          paymentType = "BOLT12";
         } catch {
-          console.error('Invalid input: neither Lightning Address nor BOLT11 nor BOLT12');
+          showErrorMessage("Invalid input: this is not a Lightning Address, invoice (bolt11) or offer (bolt12).");
+
+          console.error(
+            "Invalid input: neither Lightning Address nor BOLT11 nor BOLT12",
+          );
           return;
         }
       }
     }
 
-    if (paymentType === 'BOLT11') {
+    if (paymentType === "BOLT11") {
       amount = (decodedData.amount / 1000).toString();
-      message = decodedData.description || '';
-      let whenExpires = new Date(decodedData.timestampSeconds * 1000 + decodedData.expirySeconds * 1000);
+      message = decodedData.description || "";
+      let whenExpires = new Date(
+        decodedData.timestampSeconds * 1000 + decodedData.expirySeconds * 1000,
+      );
       expiryDate = formatDate(whenExpires);
-    } else if (paymentType === 'BOLT12') {
-//      amount = decodedData.amount ? decodedData.amount.toString() : '';
-//      message = decodedData.description || '';
+    } else if (paymentType === "BOLT12") {
+      //      amount = decodedData.amount ? decodedData.amount.toString() : '';
+      //      message = decodedData.description || '';
     }
-    
+
     showPreview = true;
   }
 
@@ -66,66 +135,91 @@
   }
 </script>
 
-<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
-<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-  <div class="mt-3 text-center">
-    <h3 class="text-lg leading-6 font-medium text-gray-900">Send Payment</h3>
-    <div class="mt-2 px-7 py-3">
-      <p class="text-sm mb-4">Paste bolt11 invoices, bolt12 offers, or lightning addresses here:</p>
-      <input
-        type="text"
-        class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
-        placeholder="Paste the invoice here"
-        bind:value={invoiceInput}
-        on:input={handleInputChange}
-      />
-      {#if showPreview}
-        <button
-          on:click={previewPayment}
-          class="mt-4 bg-blue-500 text-white active:bg-blue-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-          type="button"
-        >
-          Preview Payment
-        </button>
-      {/if}
-      {#if decodedData || paymentType === 'Lightning Address'}
-        <div class="mt-4">
-          <input
-            type="text"
-            class="w-1/2 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
-            placeholder="Amount (sats)"
-            bind:value={amount}
-          />
-          {#if paymentType !== 'BOLT11'}
-            <input
-              type="text"
-              class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
-              placeholder="Message"
-              bind:value={message}
-            />
-          {/if}
-          {#if paymentType === 'BOLT11'}
-            <p class="text-sm text-gray-600 mb-2">Expiry date: {expiryDate}</p>
-          {/if}
+<div
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+  id="my-modal"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3 text-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Send Payment</h3>
+      <div id="qrDiv" width="600px"></div>
+
+      <div class="mt-2 px-7 py-3">
+        <p class="text-sm mb-4">
+          Paste bolt11 invoices, bolt12 offers, or Lightning addresses here:
+        </p>
+        <input
+          type="text"
+          class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
+          placeholder="Paste the invoice here"
+          bind:value={invoiceInput}
+          on:input={handleInputChange}
+        />
+        {#if showPreview}
           <button
-            on:click={handleSubmit}
-            class="mt-4 bg-green-500 text-white active:bg-green-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+            on:click={previewPayment}
+            class="mt-4 bg-blue-500 text-white active:bg-blue-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
             type="button"
           >
-            Send Payment
+            Preview Payment
           </button>
-        </div>
+        {/if}
+        {#if decodedData || paymentType === "Lightning Address"}
+          <div class="mt-4">
+            <input
+              type="text"
+              class="w-1/2 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
+              placeholder="Amount (sats)"
+              bind:value={amount}
+            />
+            {#if paymentType !== "BOLT11"}
+              <input
+                type="text"
+                class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
+                placeholder="Message"
+                bind:value={message}
+              />
+            {/if}
+            {#if paymentType === "BOLT11"}
+              <p class="text-sm text-gray-600 mb-2">
+                Expiry date: {expiryDate}
+              </p>
+            {/if}
+            <button
+              on:click={handleSubmit}
+              class="mt-4 bg-green-500 text-white active:bg-green-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+              type="button"
+            >
+              Send Payment
+            </button>
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <canvas class="w-64 mx-auto" id="qr-image"></canvas>
+    <p class="text-sm text-red-600 mb-2" id="error-message"></p>
+
+    <div class="px-1 pt-3 pb-1 sm:flex sm:flex-row-reverse">
+      <button
+        type="button"
+        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+        on:click={closeModal}
+      >
+        Close
+      </button>
+
+      {#if !scanning}
+        <button
+          type="button"
+          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          on:click={scanQR}
+        >
+          Scan QR
+        </button>
       {/if}
     </div>
   </div>
-  <div class="px-1 pt-3 pb-1 sm:flex sm:flex-row-reverse">
-    <button
-      type="button"
-      class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-      on:click={closeModal}
-    >
-      Close
-    </button>
-  </div>
-</div>
 </div>

@@ -12,7 +12,7 @@
   import Receive from "./Receive.svelte";
   import Send from "./Send.svelte";
   import WebSocket from "@tauri-apps/plugin-websocket";
-
+  
   let balanceSats = 0;
   let usdPrice: number = 50000; // TODO: Get actual BTC price in fiat currency
   let isRefreshing = false;

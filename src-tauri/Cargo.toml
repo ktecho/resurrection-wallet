@@ -1,8 +1,8 @@
 [package]
 name = "resurrection_wallet"
-version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.0.1"
+description = "Resurrection Wallet"
+authors = ["btc_remnant"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,14 +12,21 @@ tauri-build = { version = "2.0.0-beta", features = [] }
 
 [dependencies]
 tauri = { version = "2.0.0-beta", features = [] }
-tauri-plugin-shell = "2.0.0-beta"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tauri-plugin-shell = "2.0.0-beta"
 tauri-plugin-http = "2.0.0-beta.12"
 tauri-plugin-fs = "2.0.0-beta.11"
 tauri-plugin-upload = "2.0.0-beta.9"
-github_release_check = "0.2.1"
 tauri-plugin-websocket = "2.0.0-beta.9"
+bardecoder = "0.5.0"
+nokhwa = { git = "https://github.com/l1npengtul/nokhwa.git", branch = "0.10", default-features = false, features = ["decoding", "input-v4l", "input-avfoundation", "output-threaded"] }
+image = { version = "0.24", features = ["jpeg"] }
+base64 = "0.21"
+
+[target.'cfg(target_os="linux")'.dependencies]
+v4l = "0.14"
+#v4l2-sys-mit = "0.3"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.

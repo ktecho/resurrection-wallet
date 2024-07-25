@@ -1,6 +1,5 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import { invoke } from "@tauri-apps/api/core";
     import { download } from '@tauri-apps/plugin-upload';
     import { Command } from "@tauri-apps/plugin-shell";
   
