@@ -30,7 +30,7 @@ export async function get_balance_sats() {
     const jsonData = await response.json();
     // console.debug('get_balance_sats:', jsonData);
 
-    return jsonData.balanceSat + jsonData.feeCreditSat;
+    return (jsonData.balanceSat, jsonData.feeCreditSat);
   }
 }
 

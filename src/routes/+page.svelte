@@ -15,6 +15,7 @@
         "-c",
         "binaries/phoenixd",
       ]).execute();
+      
       phoenixdRunning = true;
     } catch (e) {
       console.error('Error starting phoenixd:', e);

@@ -14,6 +14,7 @@
   import WebSocket from "@tauri-apps/plugin-websocket";
   
   let balanceSats = 0;
+  let balanceSatsFees = 0;
   let usdPrice: number = 50000; // TODO: Get actual BTC price in fiat currency
   let isRefreshing = false;
   let showSatoshis = true;
@@ -64,7 +65,7 @@
   async function refreshBalance() {
     if (isRefreshing) return;
     isRefreshing = true;
-    balanceSats = await get_balance_sats();
+    balanceSats, balanceSatsFees = await get_balance_sats();
     isRefreshing = false;
   }
 
@@ -124,9 +125,8 @@
     ws = await setupPaymentsWebSocket();
 
     ws.addListener((msg) => {
-      console.debug("Received message from phoenixd:", msg);
-
       if (msg.type !== "Ping") {
+        console.debug("Received message from phoenixd:", msg);
         refreshEverything();
       }
     });
@@ -188,7 +188,13 @@
           ${fiatBalance.toFixed(2)}
           {selectedFiat}
         </p>
+        {#if balanceSatsFees > 0}
+          <p class="aatext-lg text-gray-600 mt-2">
+            ({balanceSatsFees} sats)
+          </p>
+        {/if}
       </div>
+
       <button
         on:click={refreshEverything}
         class="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

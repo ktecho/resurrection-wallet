@@ -1,31 +1,27 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { formatDate } from "$lib/utils";
-  import { decode_bolt11_invoice, decode_bolt12_offer } from "$lib/phoenixdApi";
+  import { decode_bolt11_invoice, decode_bolt12_offer, pay_bolt11_invoice, get_balance_sats } from "$lib/phoenixdApi";
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
-    import { hide } from "@tauri-apps/api/app";
-
-  let videoElement;
-  let canvasElement;
-  let canvasContext;
-  let scanning = false;
 
   const dispatch = createEventDispatcher();
 
-  let invoiceInput = "";
+  let invoiceField = "";
   let decodedData = null;
-  let paymentType = null;
-  let amount = "";
+  let paymentType: string = "";
+  let amount: number = 0;
   let message = "";
   let expiryDate = "";
-  let showPreview = false;
+  let showPreviewButton = false;
+  let scanning = false;
+  let balanceSats = 0;
 
-  function hideImage() {
-    document.getElementById("qr-image").style.display = "none";
-  }
   function showImage() {
     document.getElementById("qr-image").style.display = "block";
+  }
+  function hideImage() {
+    document.getElementById("qr-image").style.display = "none";
   }
 
   function showErrorMessage(message: string) {
@@ -37,10 +33,15 @@
 
   async function stopCamera() {
     scanning = false;
+
     await invoke("stop_camera");
+
+    hideImage();
   }
 
   async function scanQR() {
+    showImage();
+
     scanning = true;
 
     const canvas = document.getElementById("qr-image");
@@ -61,7 +62,8 @@
 
       hideImage();
 
-      invoiceInput = event.payload;
+      invoiceField = event.payload;
+
       previewPayment();
     });
 
@@ -79,60 +81,97 @@
   }
 
   async function handleInputChange() {
-    if (invoiceInput.includes("@")) {
+    if (invoiceField.includes("@")) {
       paymentType = "Lightning Address";
-      showPreview = true;
-    } else if (invoiceInput.trim() !== "") {
-      showPreview = true;
+      showPreviewButton = true;
+    } else if (invoiceField.trim() !== "") {
+      showPreviewButton = true;
     } else {
-      showPreview = false;
+      showPreviewButton = false;
     }
+
+    stopCamera();
+
+    previewPayment();
   }
 
   async function previewPayment() {
     hideErrorMessage();
 
+    if (invoiceField.trim() === "") {
+      return;
+    }
+
     if (paymentType !== "Lightning Address") {
       try {
-        console.debug("Decoding invoice:", invoiceInput);
-        decodedData = await decode_bolt11_invoice(invoiceInput);
-        console.debug("Decoded invoice:", decodedData);
+        console.log("Decoding invoice:", invoiceField);
+        decodedData = await decode_bolt11_invoice(invoiceField);
+        console.log("------------  Decoded invoice:", decodedData);
         paymentType = "BOLT11";
       } catch {
         try {
-          decodedData = await decode_bolt12_offer(invoiceInput);
+          decodedData = await decode_bolt12_offer(invoiceField);
           paymentType = "BOLT12";
         } catch {
-          showErrorMessage("Invalid input: this is not a Lightning Address, invoice (bolt11) or offer (bolt12).");
+          showErrorMessage(
+            "Invalid input: this is not a Lightning Address, invoice (bolt11) or offer (bolt12).",
+          );
 
           console.error(
             "Invalid input: neither Lightning Address nor BOLT11 nor BOLT12",
           );
+
+          decodedData = null;
+
           return;
         }
       }
     }
 
     if (paymentType === "BOLT11") {
-      amount = (decodedData.amount / 1000).toString();
+      amount = decodedData.amount / 1000;
       message = decodedData.description || "";
+
       let whenExpires = new Date(
         decodedData.timestampSeconds * 1000 + decodedData.expirySeconds * 1000,
       );
       expiryDate = formatDate(whenExpires);
+
+      if (amount > balanceSats) {
+        showErrorMessage("Insufficient funds. Current balance: " + balanceSats);
+        return;
+      }
     } else if (paymentType === "BOLT12") {
-      //      amount = decodedData.amount ? decodedData.amount.toString() : '';
+      //      amount = decodedData.amount ? decodedData.amount : '';
       //      message = decodedData.description || '';
     }
 
-    showPreview = true;
+    showPreviewButton = false;
   }
 
-  function handleSubmit() {
-    // Aquí iría la lógica para procesar el pago
+  async function payNow() {
+    hideErrorMessage();
+
     console.log("Procesando pago:", { paymentType, amount, message });
-    closeModal();
-  }
+
+    let pay_bolt11_response = await pay_bolt11_invoice(invoiceField, amount);
+    console.log("----------------------------  pay_bolt11_response:", pay_bolt11_response);
+    console.log("----------------------------  pay_bolt11_response.reason:", pay_bolt11_response.reason);
+
+    if (pay_bolt11_response.hasOwnProperty("reason")) {
+      showErrorMessage(pay_bolt11_response.reason);
+      console.error("Error paying bolt11 invoice:", pay_bolt11_response);
+      return;
+    } else {
+      console.log("Successfully paid bolt11 invoice:", pay_bolt11_response);
+
+      closeModal();
+    }
+
+    onMount(async () => {
+      balanceSats, balanceSatsFees = await get_balance_sats();
+    });
+}
 </script>
 
 <div
@@ -154,43 +193,67 @@
           type="text"
           class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
           placeholder="Paste the invoice here"
-          bind:value={invoiceInput}
+          bind:value={invoiceField}
           on:input={handleInputChange}
         />
-        {#if showPreview}
-          <button
-            on:click={previewPayment}
-            class="mt-4 bg-blue-500 text-white active:bg-blue-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-            type="button"
-          >
-            Preview Payment
-          </button>
-        {/if}
+
         {#if decodedData || paymentType === "Lightning Address"}
-          <div class="mt-4">
-            <input
-              type="text"
-              class="w-1/2 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
-              placeholder="Amount (sats)"
-              bind:value={amount}
-            />
-            {#if paymentType !== "BOLT11"}
+          <div class="mt-8">
+            <div class="mb-4">
+              <label
+                for="amount"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Amount (sats)</label
+              >
               <input
+                id="amount"
                 type="text"
-                class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none mb-2"
-                placeholder="Message"
-                bind:value={message}
+                class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none text-center"
+                placeholder="Enter amount"
+                bind:value={amount}
               />
-            {/if}
+            </div>
+
             {#if paymentType === "BOLT11"}
-              <p class="text-sm text-gray-600 mb-2">
-                Expiry date: {expiryDate}
-              </p>
+              <div class="mb-4">
+                <label
+                  for="message"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Message</label
+                >
+                <input
+                  id="message"
+                  type="text"
+                  class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none text-center"
+                  placeholder="Enter message"
+                  bind:value={message}
+                  readonly
+                />
+              </div>
             {/if}
+
+            {#if paymentType === "BOLT11"}
+              <div class="mb-4">
+                <label
+                  for="expiry"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Expiry Date</label
+                >
+                <input
+                  id="expiry"
+                  type="text"
+                  class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none text-center"
+                  value={expiryDate}
+                  readonly
+                />
+              </div>
+            {/if}
+
             <button
-              on:click={handleSubmit}
-              class="mt-4 bg-green-500 text-white active:bg-green-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+              on:click={payNow}
+              class="w-full bg-green-500 text-white active:bg-green-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
               type="button"
+              disabled={amount > balanceSats}
             >
               Send Payment
             </button>
@@ -199,8 +262,8 @@
       </div>
     </div>
 
-    <canvas class="w-64 mx-auto" id="qr-image"></canvas>
-    <p class="text-sm text-red-600 mb-2" id="error-message"></p>
+    <canvas class="w-64 mx-auto hidden" id="qr-image"></canvas>
+    <p class="text-sm text-red-600 mb-2 mx-auto text-center" id="error-message"></p>
 
     <div class="px-1 pt-3 pb-1 sm:flex sm:flex-row-reverse">
       <button
