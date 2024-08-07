@@ -413,13 +413,6 @@
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 
-"@tauri-apps/plugin-os@^2.0.0-rc.0":
-  version "2.0.0-rc.0"
-  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-os/-/plugin-os-2.0.0-rc.0.tgz#b35046964a5aa3272848fa7ed7f2fbc5c8eaa157"
-  integrity sha512-OWAl8mooKnGykSD4iog8WRqcnOSx0gGmTJBlEExHdFeIuOHg0Ezvd+WiVLhT9LBg7go3ibNWRWpe/ZG7YEp4Vw==
-  dependencies:
-    "@tauri-apps/api" "^2.0.0-rc.0"
-
 "@tauri-apps/plugin-shell@^2.0.0-rc.0":
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-shell/-/plugin-shell-2.0.0-rc.0.tgz#41645da666375930f95ee2155fb9dd5a02874952"
@@ -431,6 +424,13 @@
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-store/-/plugin-store-2.0.0-rc.0.tgz#74ec5ea63200a5184bc9455c799cff9fa8a58589"
   integrity sha512-KqiEzq6EdRwxrl0/FwyNLwumDBM91xTchdu2a8vfkNub30GuP9z7RskP9ifVRI1gbxfa5TUDi0hKFk/SP7TANQ==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
+"@tauri-apps/plugin-updater@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-updater/-/plugin-updater-2.0.0-rc.0.tgz#6d6610ff7ce749423884798a73118e54e7330672"
+  integrity sha512-EKajf/sBpFif0cwXhTo3BmNvTZ2t2DDLRyhA8FFKugZNoOeqU97bHhPT5DIqMUPRE1tyDk9o7sXm8dKf7oz+EA==
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 
