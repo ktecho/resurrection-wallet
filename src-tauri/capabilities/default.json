@@ -18,6 +18,10 @@
     "fs:default",
     "upload:default",
     "websocket:default",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save",
+    "store:allow-load",
     {
       "identifier": "http:default",
       "allow": [
@@ -58,6 +62,7 @@
           "path": "binaries/*"
         }
       ]
-    }
+    },
+    "store:default"
   ]
 }

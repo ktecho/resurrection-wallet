@@ -1,7 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { formatDate } from "$lib/utils";
-  import { decode_bolt11_invoice, decode_bolt12_offer, pay_bolt11_invoice, get_balance_sats } from "$lib/phoenixdApi";
+  import {
+    decode_bolt11_invoice,
+    decode_bolt12_offer,
+    pay_bolt11_invoice,
+    pay_bolt12_offer,
+    pay_lightning_address,
+    get_balance_sats,
+  } from "$lib/phoenixdApi";
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
 
@@ -16,25 +23,42 @@
   let showPreviewButton = false;
   let scanning = false;
   let balanceSats = 0;
+  let balanceSatsFees = 0;
 
   function showImage() {
-    document.getElementById("qr-image").style.display = "block";
+    const qrImage = document.getElementById("qr-image");
+    if (qrImage) {
+      qrImage.style.display = "block";
+    }
   }
   function hideImage() {
-    document.getElementById("qr-image").style.display = "none";
+    const qrImage = document.getElementById("qr-image");
+    if (qrImage) {
+      qrImage.style.display = "none";
+    }
   }
 
   function showErrorMessage(message: string) {
-    document.getElementById("error-message").innerText = message;
+    const errorMessage = document.getElementById("error-message");
+    if (errorMessage) {
+      errorMessage.innerText = message;
+    }
   }
   function hideErrorMessage() {
-    document.getElementById("error-message").innerText = "";
+    const errorMessage = document.getElementById("error-message");
+    if (errorMessage) {
+      errorMessage.innerText = "";
+    }
   }
 
   async function stopCamera() {
     scanning = false;
 
-    await invoke("stop_camera");
+    try {
+      await invoke("stop_camera");
+    } catch (e) {
+      console.debug("Error stopping camera. Maybe it was already stopped:", e);
+    }
 
     hideImage();
   }
@@ -141,9 +165,6 @@
         showErrorMessage("Insufficient funds. Current balance: " + balanceSats);
         return;
       }
-    } else if (paymentType === "BOLT12") {
-      //      amount = decodedData.amount ? decodedData.amount : '';
-      //      message = decodedData.description || '';
     }
 
     showPreviewButton = false;
@@ -152,26 +173,68 @@
   async function payNow() {
     hideErrorMessage();
 
-    console.log("Procesando pago:", { paymentType, amount, message });
+    let paymentOK = false;
 
-    let pay_bolt11_response = await pay_bolt11_invoice(invoiceField, amount);
-    console.log("----------------------------  pay_bolt11_response:", pay_bolt11_response);
-    console.log("----------------------------  pay_bolt11_response.reason:", pay_bolt11_response.reason);
+    console.log("Processing payment:", { paymentType, amount, message });
 
-    if (pay_bolt11_response.hasOwnProperty("reason")) {
-      showErrorMessage(pay_bolt11_response.reason);
-      console.error("Error paying bolt11 invoice:", pay_bolt11_response);
-      return;
-    } else {
-      console.log("Successfully paid bolt11 invoice:", pay_bolt11_response);
+    if (paymentType === "BOLT11") {
+      let pay_bolt11_response = await pay_bolt11_invoice(invoiceField, amount);
+      console.log(
+        "----------------------------  pay_bolt11_response:",
+        pay_bolt11_response
+      );
+      console.log(
+        "----------------------------  pay_bolt11_response.reason:",
+        pay_bolt11_response.reason
+      );
 
-      closeModal();
+      if (pay_bolt11_response.hasOwnProperty("reason")) {
+        showErrorMessage(pay_bolt11_response.reason);
+        console.error("Error paying bolt11 invoice:", pay_bolt11_response);
+        return;
+      } else {
+        console.log("Successfully paid bolt11 invoice:", pay_bolt11_response);
+
+        paymentOK = true;
+      }
+
+    } else if (paymentType === "BOLT12") {
+      let pay_bolt12_response = await pay_bolt12_offer(invoiceField, amount, message);
+      console.log(
+        "----------------------------  pay_bolt12_offer:",
+        pay_bolt12_response
+      );
+
+      if (!pay_bolt12_response.hasOwnProperty("recipientAmountSat")) {
+        showErrorMessage(pay_bolt12_response.reason);
+        console.error("Error paying bolt12 offer:", pay_bolt12_response);
+        return;
+      } else {
+        console.log("Successfully paid bolt12 offer:", pay_bolt12_response);
+
+        paymentOK = true;
+      }
+
+    } else if (paymentType === "Lightning Address") {
+      let pay_lightning_address_response = await pay_lightning_address(invoiceField, amount, message);
+      console.log(
+        "----------------------------  pay_lightning_address:",
+        pay_lightning_address_response
+      );
+
+      if (false) {
+        paymentOK = true;
+      }
     }
 
-    onMount(async () => {
-      balanceSats, balanceSatsFees = await get_balance_sats();
-    });
-}
+    if (paymentOK) {
+      closeModal();
+    }
+  }
+
+  onMount(async () => {
+    [balanceSats, balanceSatsFees] = await get_balance_sats();
+  });
 </script>
 
 <div
@@ -214,7 +277,7 @@
               />
             </div>
 
-            {#if paymentType === "BOLT11"}
+            {#if paymentType === "BOLT11" || paymentType === "BOLT12" || paymentType === "Lightning Address"}
               <div class="mb-4">
                 <label
                   for="message"
@@ -227,7 +290,7 @@
                   class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none text-center"
                   placeholder="Enter message"
                   bind:value={message}
-                  readonly
+                  readonly={paymentType === "BOLT11"}
                 />
               </div>
             {/if}
@@ -263,7 +326,10 @@
     </div>
 
     <canvas class="w-64 mx-auto hidden" id="qr-image"></canvas>
-    <p class="text-sm text-red-600 mb-2 mx-auto text-center" id="error-message"></p>
+    <p
+      class="text-sm text-red-600 mb-2 mx-auto text-center"
+      id="error-message"
+    ></p>
 
     <div class="px-1 pt-3 pb-1 sm:flex sm:flex-row-reverse">
       <button

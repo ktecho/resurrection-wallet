@@ -1,12 +1,12 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { get_node_info } from "$lib/phoenixdApi";
-  import { Command } from "@tauri-apps/plugin-shell";
-    import NoWorkResult from "postcss/lib/no-work-result";
+  import { setupStore } from "$lib/setupStore";
+  import { startPhoenixd, copyToClipboard } from "$lib/utils";
 
   export let selectedFiat = "USD";
-  let selectedNetwork = "";
-  $: isLoading = false;
+  let bitcoinNetwork = "mainnet";
+  let isLoading = false;
   let nodeInfo = null;
 
   const dispatch = createEventDispatcher();
@@ -19,45 +19,38 @@
   ];
 
   function saveFiatSelection() {
+    setupStore.update((store) => {
+      const newStore = store.filter(([key]) => key !== "selectedFiat");
+      newStore.push(["selectedFiat", selectedFiat]);
+      return newStore;
+    });
+
     dispatch("fiatChange", { selectedFiat });
   }
-
-  $: console.log("isLoading:", isLoading);
 
   async function changeNetwork() {
     isLoading = true;
 
     try {
-      // Kill the current phoenixd process
-      await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
+      await startPhoenixd(bitcoinNetwork);
 
-      // Start phoenixd with the new network parameter
-      Command.create("exec-sh", ["-c", `binaries/phoenixd --chain=${selectedNetwork}`]).execute();
+      await getNodeInfo();
 
-      // Wait a bit for the process to start up
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      await get_node_info_and_set_network();
-      isLoading = false;
-
+      setupStore.update((store) => {
+        const newStore = store.filter(([key]) => key !== "bitcoinNetwork");
+        newStore.push(["bitcoinNetwork", bitcoinNetwork]);
+        return newStore;
+      });
     } catch (e) {
       console.error("Error changing network:", e);
     } finally {
-      console.log("SALIENDO POR EL FINALLY DE CHANGENETWORK");
-      console.log("Before setting isLoading to false:", isLoading);
-      try {
-        isLoading = false;
-      } catch (error) {
-        console.error("Error setting isLoading to false:", error);
-      }
-      console.log("After setting isLoading to false:", isLoading);
+      isLoading = false;
     }
   }
 
-  async function get_node_info_and_set_network() {
+  async function getNodeInfo() {
     try {
       nodeInfo = await get_node_info();
-      selectedNetwork = nodeInfo.chain;
       console.log("nodeInfo:", nodeInfo);
     } catch (e) {
       console.error("Error fetching node info:", e);
@@ -68,7 +61,18 @@
     isLoading = true;
 
     try {
-      await get_node_info_and_set_network();
+      await getNodeInfo();
+
+      // Load saved settings from the store
+      setupStore.subscribe((store) => {
+        const savedFiat = store.find(([key]) => key === "selectedFiat");
+        if (savedFiat) selectedFiat = savedFiat[1] as string;
+
+        const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
+        if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
+
+        console.log("bitcoinNetwork Setup.svelte:", bitcoinNetwork);
+      });
     } finally {
       isLoading = false;
     }
@@ -115,7 +119,7 @@
         >
         <select
           id="network"
-          bind:value={selectedNetwork}
+          bind:value={bitcoinNetwork}
           on:change={() => changeNetwork()}
           class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
@@ -173,7 +177,16 @@
                     >
                     <td
                       class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                      >{channel.channelId}</td
+                      >{channel.channelId.slice(0, 15)}...
+                      <button
+                        class="ml-2 text-blue-500 hover:text-blue-700"
+                        on:click={() => copyToClipboard(channel.channelId)}
+                        title="Copy full Channel ID"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button></td
                     >
                     <td
                       class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"

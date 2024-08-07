@@ -420,6 +420,13 @@
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 
+"@tauri-apps/plugin-store@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-store/-/plugin-store-2.0.0-rc.0.tgz#74ec5ea63200a5184bc9455c799cff9fa8a58589"
+  integrity sha512-KqiEzq6EdRwxrl0/FwyNLwumDBM91xTchdu2a8vfkNub30GuP9z7RskP9ifVRI1gbxfa5TUDi0hKFk/SP7TANQ==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
 "@tauri-apps/plugin-upload@^2.0.0-rc.0":
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-upload/-/plugin-upload-2.0.0-rc.0.tgz#220b24852c139b96ecfea424ad62de87473b45fc"

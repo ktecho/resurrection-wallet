@@ -22,15 +22,15 @@ export async function get_balance_sats() {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("get_balance_sats - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to fetch balance");
   } else {
     const jsonData = await response.json();
-    // console.debug('get_balance_sats:', jsonData);
+    console.debug('get_balance_sats:', jsonData);
 
-    return (jsonData.balanceSat, jsonData.feeCreditSat);
+    return [jsonData.balanceSat, jsonData.feeCreditSat];
   }
 }
 
@@ -42,7 +42,7 @@ export async function get_node_info() {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("get_node_info - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to fetch node info");
@@ -60,7 +60,7 @@ export async function get_incoming_payments() {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("get_incoming_payments - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to fetch incoming payments");
@@ -78,7 +78,7 @@ export async function get_outgoing_payments() {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("get_outgoing_payments - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to fetch outgoing payments");
@@ -102,7 +102,7 @@ export async function create_invoice_bolt11(description: string = "", amount: nu
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("create_invoice_bolt11 - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to get a bolt11 invoice");
@@ -120,7 +120,7 @@ export async function create_offer_bolt12() {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("create_offer_bolt12 - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to get a bolt12 offer");
@@ -140,7 +140,7 @@ export async function check_payment(paymentHash: string) {
     headers: headers,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("check_payment - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to check payment");
@@ -162,7 +162,7 @@ export async function decode_bolt11_invoice(invoice: string) {
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("decode_bolt11_invoice - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to decode a bolt11 invoice");
@@ -185,12 +185,11 @@ export async function decode_bolt12_offer(offer: string) {
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("decode_bolt12_offer - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to decode a bolt12 offer");
   } else {
-    console.debug('decode_bolt12_offer:', response);
     return await response.json();
   }
 }
@@ -209,7 +208,7 @@ export async function pay_bolt11_invoice(invoice: string, amountSat: number) {
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("pay_bolt11_invoice - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to pay a bolt11 invoice");
@@ -234,7 +233,7 @@ export async function pay_bolt12_offer(offer: string, amountSat: number, message
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("pay_bolt12_offer - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to pay a bolt12 offer");
@@ -259,7 +258,7 @@ export async function pay_lightning_address(address: string, amountSat: number, 
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("pay_lightning_address - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to pay a Lightning Address");
@@ -284,7 +283,7 @@ export async function pay_onchain_address(address: string, amountSat: number, fe
     body: params,
   });
 
-  console.debug(response.status + ' - ' + response.statusText);
+  console.debug("pay_onchain_address - " + response.status + ' - ' + response.statusText);
 
   if (response.status !== 200) {
     throw new Error("Failed to pay an onchain address");

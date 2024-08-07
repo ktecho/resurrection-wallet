@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { exists } from "@tauri-apps/plugin-fs";
-  import { Command } from "@tauri-apps/plugin-shell";
+  import { setupStore } from "$lib/setupStore";
+  import { startPhoenixd, phoenixBinaryExists } from "$lib/utils";
   import MainScreen from "$lib/components/MainScreen.svelte";
   import PhoenixdInstall from "$lib/components/PhoenixdInstall.svelte";
 
@@ -9,32 +9,28 @@
   let phoenixdRunning = false;
   let checking = true;
 
-  async function startPhoenixd() {
-    console.log("Starting phoenixd...");
-    try {
-      // Kill the current phoenixd process
-      await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
-
-      Command.create("exec-sh", ["-c", "binaries/phoenixd"]).execute();
-
-      phoenixdRunning = true;
-
-    } catch (e) {
-      console.error("Error starting phoenixd:", e);
-    }
-  }
+  let bitcoinNetwork = "mainnet";
 
   async function handleSetupComplete() {
     phoenixdExists = true;
-    await startPhoenixd();
+    phoenixdRunning = await startPhoenixd();
   }
 
   onMount(async () => {
+    await setupStore.load();  // Load setup data
+
+    // Load saved settings from the store
+    setupStore.subscribe((store) => {
+      const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
+      if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
+      console.log("bitcoinNetwork page.svelte:", bitcoinNetwork);
+    });
+
     try {
-      phoenixdExists = await exists("binaries/phoenixd");
+      phoenixdExists = await phoenixBinaryExists();
 
       if (phoenixdExists) {
-        await startPhoenixd();
+        phoenixdRunning = await startPhoenixd(bitcoinNetwork, 3000);
       }
     } catch (e) {
       console.error("Error while searching for or starting phoenixd:", e);

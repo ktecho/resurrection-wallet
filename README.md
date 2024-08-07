@@ -3,12 +3,15 @@ Resurrection Wallet is a frontend for [Phoenixd](https://github.com/phoenixrails
 
 Features:
 - [x] Autoinstall Phoenixd
+- [x] Use mainnet or testnet
 - [x] Update balance and transactions automatically when a new payment is received / sent
-- [x] Create invoice
-- [ ] Use mainnet or testnet
+- [x] Create invoice and receive payments
+- [x] Pay bolt11 invoices
+- [x] Pay bol12 offers
+- [ ] Pay Lightning Addresses
+- [ ] Pay onchain addresses
+- [ ] Show fiat value in different currencies
 - [ ] Open phoenixd.conf to read the password
-- [ ] Pay bolt11 invoices
-- [ ] Pay bol12 offers
 - [ ] Scan QR Codes to pay invoices/offers
 - [ ] Auto-update app
 - [ ] Auto-update Phoenixd

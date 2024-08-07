@@ -33,6 +33,13 @@
 
   function closeReceiveModal() {
     showReceiveModal = false;
+    refreshEverything();
+  }
+
+  function closeSendModal() {
+    showSendModal = false;
+    showAllDetails = false;
+    refreshEverything();
   }
 
   function handleReceive() {
@@ -46,9 +53,13 @@
   $: fiatBalance = (balanceSats / 100000000) * usdPrice;
 
   async function refreshEverything() {
-    await refreshBalance();
+    isRefreshing = true;
+
+    [balanceSats, balanceSatsFees] = await get_balance_sats();
     const incoming_payments = await get_incoming_payments();
     const outgoing_payments = await get_outgoing_payments();
+
+    isRefreshing = false;
 
     console.log("incoming_payments", incoming_payments);
 
@@ -60,13 +71,6 @@
 
     // Asign the first 4 transactions to visibleTransactions
     visibleTransactions = allTransactions.slice(0, 4);
-  }
-
-  async function refreshBalance() {
-    if (isRefreshing) return;
-    isRefreshing = true;
-    balanceSats, balanceSatsFees = await get_balance_sats();
-    isRefreshing = false;
   }
 
   function loadMoreTransactions() {
@@ -109,8 +113,13 @@
       : description;
   }
 
-  function formatAmount(amount) {
-    return `${amount.toLocaleString()} sats`;
+  function formatAmount(amount, millisatoshis: boolean = false) {
+    if (millisatoshis) {
+      let sats = Math.round(amount / 1000);
+      return `${sats.toLocaleString()} sats`;
+    } else {
+      return `${amount.toLocaleString()} sats`;
+    }
   }
 
   let showAllDetails = false;
@@ -386,7 +395,7 @@
             : selectedTransaction.sent,
         )}
       </div>
-      <div><strong>Fees:</strong> {formatAmount(selectedTransaction.fees)}</div>
+      <div><strong>Fees:</strong> {formatAmount(selectedTransaction.fees, true)}</div>
       <div>
         <strong>Created At:</strong>
         {formatDate(selectedTransaction.createdAt)}
@@ -468,9 +477,6 @@
 
 {#if showSendModal}
   <Send
-    on:close={() => {
-      showSendModal = false;
-      showAllDetails = false;
-    }}
+    on:close={closeSendModal}
   />
 {/if}
