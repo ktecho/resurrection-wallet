@@ -14,7 +14,7 @@ Features:
 - [ ] Pay Lightning Addresses
 - [ ] Pay onchain addresses
 - [ ] Show fiat value in different currencies
-- [ ] Scan QR Codes to pay invoices/offers
+- [ ] Scan QR Codes to pay invoices/offers ---> it works, but it's not very reliable
 - [ ] Auto-update app
 - [ ] Auto-update Phoenixd
 - [ ] Manage the phoenixd process better

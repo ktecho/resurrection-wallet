@@ -21,6 +21,8 @@
   let selectedFiat: string = "USD"; // This will be controlled by the Setup component
   let showSetup = false;
 
+  let showNthFirstTransactions = 6;
+
   let allTransactions = [];
   let visibleTransactions: any[] = [];
   let selectedTransaction = null;
@@ -69,13 +71,13 @@
     // Order transactions by date, most recent first
     allTransactions.sort((a, b) => b.createdAt - a.createdAt);
 
-    // Asign the first 4 transactions to visibleTransactions
-    visibleTransactions = allTransactions.slice(0, 4);
+    // Asign the first showNthFirstTransactions transactions to visibleTransactions
+    visibleTransactions = allTransactions.slice(0, showNthFirstTransactions);
   }
 
   function loadMoreTransactions() {
     const currentLength = visibleTransactions.length;
-    visibleTransactions = allTransactions.slice(0, currentLength + 4);
+    visibleTransactions = allTransactions.slice(0, currentLength + showNthFirstTransactions);
   }
 
   function toggleBalanceUnit() {
