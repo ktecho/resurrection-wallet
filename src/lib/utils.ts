@@ -17,12 +17,12 @@ export function formatDate(timestamp) {
 
 export function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => {
-      // Opcionalmente, puedes mostrar una notificación de que se ha copiado
-      alert("Channel ID copiado al portapapeles");
+        // Opcionalmente, puedes mostrar una notificación de que se ha copiado
+        alert("Channel ID copiado al portapapeles");
     }).catch(err => {
-      console.error('Error al copiar el texto: ', err);
+        console.error('Error al copiar el texto: ', err);
     });
-  }
+}
 
 export async function persistSetup(entries: [key: string, value: unknown][]) {
     console.log("saveSetup - SETUP ENTRIES: " + entries);
@@ -61,9 +61,8 @@ export async function startPhoenixd(network: string = "mainnet", waitMillis: num
 
 export async function phoenixBinaryExists(): Promise<boolean> {
     try {
-        await exists("binaries/phoenixd");
-        return true;
-    } catch (e) {
-        return false;
+        return await exists("binaries/phoenixd");
+    } catch (error) {
+        throw error;
     }
 }

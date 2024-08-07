@@ -23,7 +23,6 @@
     setupStore.subscribe((store) => {
       const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
       if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
-      console.log("bitcoinNetwork page.svelte:", bitcoinNetwork);
     });
 
     try {
