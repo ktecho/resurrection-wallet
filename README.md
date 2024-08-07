@@ -29,4 +29,4 @@ Features:
 - Install Rust (https://www.rust-lang.org/tools/install)
 - Run "sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev"
 - Run "cd src-tauri && cargo build && cd .."
-- Run "npm run tauri dev"
+- Run "sudo npm install --global yarn && npm run tauri dev"
