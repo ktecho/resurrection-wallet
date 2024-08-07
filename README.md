@@ -21,3 +21,7 @@ Features:
 - Tauri (Rust)
 - SvelteKit
 - Tailwind
+
+## Development environment
+- Install Rust (https://www.rust-lang.org/tools/install)
+- Run "npm run tauri dev"
