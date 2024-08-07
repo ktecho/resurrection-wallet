@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { get_node_info } from "$lib/phoenixdApi";
   import { Command } from "@tauri-apps/plugin-shell";
@@ -32,10 +32,7 @@
       await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
 
       // Start phoenixd with the new network parameter
-      await Command.create("exec-sh", [
-        "-c",
-        `binaries/phoenixd --chain=${selectedNetwork}`,
-      ]).execute();
+      Command.create("exec-sh", ["-c", `binaries/phoenixd --chain=${selectedNetwork}`]).execute();
 
       // Wait a bit for the process to start up
       await new Promise((resolve) => setTimeout(resolve, 3000));

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { download } from '@tauri-apps/plugin-upload';
     import { Command } from "@tauri-apps/plugin-shell";
@@ -8,7 +8,7 @@
     let selectedOption = null;
     let downloadProgress = 0;
     let downloadComplete = false;
-    let error = null;
+    let error: string | null = null;
   
     async function handleOptionSelect(option) {
       selectedOption = option;
@@ -26,7 +26,7 @@
         downloadProgress = 10;
 
         await download(
-            "https://github.com/ACINQ/phoenixd/releases/download/v0.3.0/phoenix-0.3.0-linux-x64.zip",
+            "https://github.com/ACINQ/phoenixd/releases/download/v0.3.2/phoenix-0.3.2-linux-x64.zip",
             "downloads/phoenixd.zip",
         );
         downloadProgress = 30;

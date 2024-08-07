@@ -3,7 +3,7 @@ import WebSocket from '@tauri-apps/plugin-websocket';
 
 let host = "127.0.0.1";
 let port = "9740";
-let password = "71ec453e388cdddff03f2dd31bb26230e09af625e922ecc4923a9b9561a27197";
+let password = "d1aee2fbe9def384f1b92a3f64106a236140fed80f1ceb06e4e107edc6db47a4";
 
 export function get_auth_headers() {
   const headers = new Headers();
