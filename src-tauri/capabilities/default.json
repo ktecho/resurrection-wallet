@@ -57,9 +57,22 @@
     },
     {
       "identifier": "fs:allow-exists",
+      "requireLiteralLeadingDot": false,
       "allow": [
         {
           "path": "binaries/*"
+        },
+        {
+          "path": "$HOME/.phoenix/phoenix.conf"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:read-all",
+      "requireLiteralLeadingDot": false,
+      "allow": [
+        {
+          "path": "$HOME/.phoenix/phoenix.conf"
         }
       ]
     },
