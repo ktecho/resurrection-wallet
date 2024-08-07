@@ -1,6 +1,10 @@
 import { Command } from "@tauri-apps/plugin-shell";
 import { exists } from "@tauri-apps/plugin-fs";
 import { Store } from '@tauri-apps/plugin-store';
+import {
+    decode_bolt11_invoice,
+    decode_bolt12_offer,
+} from "$lib/phoenixdApi";
 
 const store = new Store('resurrection_wallet_setup.bin');
 
@@ -13,6 +17,23 @@ export function formatDate(timestamp) {
         minute: "2-digit",
         second: "2-digit",
     });
+}
+
+export function formatAmount(amount, millisatoshis: boolean = false) {
+    if (millisatoshis) {
+        let sats = Math.round(amount / 1000);
+        return `${sats.toLocaleString()} sats`;
+    } else {
+        return `${amount.toLocaleString()} sats`;
+    }
+}
+
+export function truncateString(description, maxLength = 40) {
+    if (!description) return "";
+
+    return description.length > maxLength
+        ? description.slice(0, maxLength) + "..."
+        : description;
 }
 
 export function copyToClipboard(text: string) {
@@ -55,6 +76,18 @@ export async function startPhoenixd(network: string = "mainnet", waitMillis: num
 
     } catch (e) {
         console.error("Error starting phoenixd:", e);
+        return false;
+    }
+}
+
+export async function stopPhoenixd() {
+    console.log("Stopping phoenixd...");
+
+    try {
+        await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
+        return true;
+    } catch (e) {
+        console.error("Error stopping phoenixd:", e);
         return false;
     }
 }

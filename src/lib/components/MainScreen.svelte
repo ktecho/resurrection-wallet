@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import Setup from "$lib/components/Setup.svelte";
-  import {formatDate} from "$lib/utils";
+  import { formatDate, formatAmount, truncateString } from "$lib/utils";
   import {
     get_balance_sats,
     get_incoming_payments,
@@ -12,7 +12,7 @@
   import Receive from "./Receive.svelte";
   import Send from "./Send.svelte";
   import WebSocket from "@tauri-apps/plugin-websocket";
-  
+
   let balanceSats = 0;
   let balanceSatsFees = 0;
   let usdPrice: number = 50000; // TODO: Get actual BTC price in fiat currency
@@ -30,6 +30,8 @@
   let showModal = false;
   let showSendModal = false;
   let showReceiveModal = false;
+
+  let showAllDetails = false;
 
   let ws: WebSocket;
 
@@ -77,7 +79,10 @@
 
   function loadMoreTransactions() {
     const currentLength = visibleTransactions.length;
-    visibleTransactions = allTransactions.slice(0, currentLength + showNthFirstTransactions);
+    visibleTransactions = allTransactions.slice(
+      0,
+      currentLength + showNthFirstTransactions,
+    );
   }
 
   function toggleBalanceUnit() {
@@ -87,7 +92,6 @@
   function openSetup() {
     showSetup = true;
   }
-
   function closeSetup() {
     showSetup = false;
   }
@@ -97,34 +101,16 @@
     // TODO: save selectedFiat to localStorage
   }
 
-  function openTransactionDetails(transaction) {
-    selectedTransaction = transaction;
+  async function openTransactionDetails(transaction) {
     showModal = true;
+    selectedTransaction = transaction;
   }
 
   function closeModal() {
     showModal = false;
     selectedTransaction = null;
+    showAllDetails = false;
   }
-
-  function truncateDescription(description, maxLength = 40) {
-    if (!description) return "";
-
-    return description.length > maxLength
-      ? description.slice(0, maxLength) + "..."
-      : description;
-  }
-
-  function formatAmount(amount, millisatoshis: boolean = false) {
-    if (millisatoshis) {
-      let sats = Math.round(amount / 1000);
-      return `${sats.toLocaleString()} sats`;
-    } else {
-      return `${amount.toLocaleString()} sats`;
-    }
-  }
-
-  let showAllDetails = false;
 
   function toggleDetails() {
     showAllDetails = !showAllDetails;
@@ -151,7 +137,7 @@
 </script>
 
 <svelte:head>
-    <title>Resurrection Wallet</title>
+  <title>Resurrection Wallet</title>
 </svelte:head>
 
 <div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md relative">
@@ -330,7 +316,7 @@
                 ? 'font-bold'
                 : ''}"
             >
-              {truncateDescription(transaction.description)}
+              {truncateString(transaction.description)}
             </td>
             <td
               class="px-6 py-4 whitespace-nowrap text-sm text-center {transaction.isPaid
@@ -367,12 +353,7 @@
 </div>
 
 {#if showModal && selectedTransaction}
-  <Modal
-    on:close={() => {
-      closeModal();
-      showAllDetails = false;
-    }}
-  >
+  <Modal on:close={closeModal}>
     <h2 slot="header">
       {#if selectedTransaction.receivedSat}
         {selectedTransaction.isPaid
@@ -380,12 +361,6 @@
           : "Incoming Transaction"}
       {:else}
         {selectedTransaction.isPaid ? "Payment Sent" : "Outgoing Transaction"}
-      {/if}
-
-      {#if selectedTransaction.invoice}
-        <div class="col-span-2 text-gray-500 text-sm">(bolt11 invoice)</div>
-      {:else}
-        <div class="col-span-2 text-gray-500 text-sm">(bol12 offer)</div>
       {/if}
     </h2>
     <div slot="content" class="grid grid-cols-2 gap-4 mt-8">
@@ -397,7 +372,10 @@
             : selectedTransaction.sent,
         )}
       </div>
-      <div><strong>Fees:</strong> {formatAmount(selectedTransaction.fees, true)}</div>
+      <div>
+        <strong>Fees:</strong>
+        {formatAmount(selectedTransaction.fees, true)}
+      </div>
       <div>
         <strong>Created At:</strong>
         {formatDate(selectedTransaction.createdAt)}
@@ -478,7 +456,5 @@
 {/if}
 
 {#if showSendModal}
-  <Send
-    on:close={closeSendModal}
-  />
+  <Send on:close={closeSendModal} />
 {/if}
