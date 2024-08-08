@@ -1,6 +1,9 @@
 import { Command } from "@tauri-apps/plugin-shell";
 import { exists } from "@tauri-apps/plugin-fs";
 import { Store } from '@tauri-apps/plugin-store';
+import { join, appDataDir } from '@tauri-apps/api/path';
+
+export let phoenixVersionLiteral = "phoenix-0.3.2-linux-x64";
 
 const store = new Store('resurrection_wallet_setup.bin');
 
@@ -34,7 +37,6 @@ export function truncateString(description, maxLength = 40) {
 
 export function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => {
-        // Opcionalmente, puedes mostrar una notificación de que se ha copiado
         alert("Channel ID copiado al portapapeles");
     }).catch(err => {
         console.error('Error al copiar el texto: ', err);
@@ -42,8 +44,6 @@ export function copyToClipboard(text: string) {
 }
 
 export async function persistSetup(entries: [key: string, value: unknown][]) {
-    console.log("saveSetup - SETUP ENTRIES: " + entries);
-
     for (const [key, value] of entries) {
         await store.set(key, value);
     }
@@ -52,18 +52,18 @@ export async function persistSetup(entries: [key: string, value: unknown][]) {
 }
 
 export async function loadSetup() {
-    const setupEntries = await store.entries();
-    console.log("loadSetup - SETUP ENTRIES: " + setupEntries);
-    return setupEntries;
+    return await store.entries();
 }
 
 export async function startPhoenixd(network: string = "mainnet", waitMillis: number = 3000): Promise<boolean> {
+    const appDirectory: string = await appDataDir();
+
     console.log("Starting phoenixd...");
 
     try {
         await Command.create("exec-sh", ["-c", "pkill phoenixd"]).execute();
 
-        Command.create("exec-sh", ["-c", `binaries/phoenixd --chain=${network}`]).execute();
+        Command.create("exec-sh", ["-c", `${await join(appDirectory, "phoenixd")} --chain=${network}`]).execute();
 
         // Wait a bit for the process to start up
         await new Promise((resolve) => setTimeout(resolve, waitMillis));
@@ -89,8 +89,10 @@ export async function stopPhoenixd() {
 }
 
 export async function phoenixBinaryExists(): Promise<boolean> {
+    const appDirectory: string = await appDataDir();
+
     try {
-        return await exists("binaries/phoenixd");
+        return await exists(await join(appDirectory, "phoenixd"));
     } catch (error) {
         throw error;
     }

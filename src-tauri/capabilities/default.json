@@ -17,6 +17,10 @@
     "core:tray:default",
     "shell:allow-open",
     "fs:default",
+    "fs:allow-localdata-write-recursive",
+    "fs:allow-localdata-read-recursive",
+    "fs:allow-temp-write-recursive",
+    "fs:allow-temp-read-recursive",
     "upload:default",
     "websocket:default",
     "store:default",
@@ -62,9 +66,6 @@
       "identifier": "fs:allow-exists",
       "requireLiteralLeadingDot": false,
       "allow": [
-        {
-          "path": "binaries/*"
-        },
         {
           "path": "$HOME/.phoenix/phoenix.conf"
         }

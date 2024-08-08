@@ -14,7 +14,7 @@
 
   async function handleSetupComplete() {
     phoenixdExists = true;
-    phoenixdRunning = await startPhoenixd();
+    phoenixdRunning = await startPhoenixd(bitcoinNetwork, 3000);
   }
 
   onMount(async () => {

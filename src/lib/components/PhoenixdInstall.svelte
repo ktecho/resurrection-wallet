@@ -2,6 +2,8 @@
   import { createEventDispatcher } from "svelte";
   import { download } from "@tauri-apps/plugin-upload";
   import { Command } from "@tauri-apps/plugin-shell";
+  import { join, tempDir, appDataDir } from '@tauri-apps/api/path';
+  import { phoenixVersionLiteral } from '$lib/utils';
 
   const dispatch = createEventDispatcher();
 
@@ -9,9 +11,7 @@
   let downloadProgress = 0;
   let downloadComplete = false;
   let error: string | null = null;
-
-  let phoenixVersionLiteral = "phoenix-0.3.2-linux-x64";
-
+  
   async function handleOptionSelect(option) {
     selectedOption = option;
     if (option === "download") {
@@ -25,30 +25,33 @@
   }
 
   async function download_install_phoenixd() {
+    const tempDirectory: string = await tempDir();
+    const appDirectory: string = await appDataDir();
+
     downloadProgress = 10;
 
     try {
       await download(
         `https://github.com/ACINQ/phoenixd/releases/download/v0.3.2/${phoenixVersionLiteral}.zip`,
-        "downloads/phoenixd.zip",
+        await join(tempDirectory, "phoenixd.zip")
       );
       downloadProgress = 30;
 
       await Command.create("exec-sh", [
         "-c",
-        "unzip downloads/phoenixd.zip",
+        `cd ${tempDirectory} ; unzip ${await join(tempDirectory, "phoenixd.zip")}`,
       ]).execute();
       downloadProgress = 50;
 
       await Command.create("exec-sh", [
         "-c",
-        `cp ${phoenixVersionLiteral}/* binaries/`,
+        `cp ${await join(tempDirectory, phoenixVersionLiteral, "*")} ${appDirectory}`,
       ]).execute();
       downloadProgress = 70;
 
-      let installed = await Command.create("exec-sh", [
+      await Command.create("exec-sh", [
         "-c",
-        `rm -rf downloads/* ; rm -rf ${phoenixVersionLiteral}`,
+        `rm -rf ${await join(tempDirectory, "phoenixd.zip")} ; rm -rf ${await join(tempDirectory, phoenixVersionLiteral)}`,
       ]).execute();
 
       downloadProgress = 100;
