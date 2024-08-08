@@ -1,10 +1,6 @@
 import { Command } from "@tauri-apps/plugin-shell";
 import { exists } from "@tauri-apps/plugin-fs";
 import { Store } from '@tauri-apps/plugin-store';
-import {
-    decode_bolt11_invoice,
-    decode_bolt12_offer,
-} from "$lib/phoenixdApi";
 
 const store = new Store('resurrection_wallet_setup.bin');
 
