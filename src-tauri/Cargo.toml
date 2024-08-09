@@ -1,6 +1,6 @@
 [package]
 name = "resurrection_wallet"
-version = "0.0.1"
+version = "0.2.0"
 description = "Resurrection Wallet"
 authors = ["btc_remnant"]
 edition = "2021"
