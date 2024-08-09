@@ -1,7 +1,7 @@
 {
   "productName": "resurrection_wallet",
   "version": "0.1.0",
-  "identifier": "com.btc-remnant.resurrection-wallet",
+  "identifier": "com.resurrection.wallet",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:1420",
@@ -34,7 +34,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdDRjRDQTZFMDE2RDQyRDIKUldUU1FtMEJic3IwZkJSZTc5SDV0ZmJnSUxBbnZjWVh5NmZxQzJSV1c5QjVhYW5ZekNmaVZhekwK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFDNkI2NDAzQjA4NkE4NEMKUldSTXFJYXdBMlJyck90eGNCcFUySk16bkdsRmNDL2psS1Y1N0U1bHFVbFNVMU82NFdJc3N3U1IK",
       "endpoints": [
         "https://github.com/ktecho/resurrection-wallet/releases/latest/download/latest.json"
       ]
