@@ -22,12 +22,27 @@ Features:
     - [x] Kill Phoenixd when the app is closed
 - [ ] Detect WebSocket disconnections / manage reconnection
 
+Main Screen
+![Main screen](screenshots/image1.png)
+
+Transaction details
+![Transaction details](screenshots/image2.png)
+
+Setup Screen
+![Setup Screen](screenshots/image3.png)
+## Installation
+
+Download the latest release from the [releases page](https://github.com/ktecho/resurrection-wallet/releases/latest) and run it. AppImages are recommended because they'll be easier to update to the next version.
+
+It will prompt you to install Phoenixd automatically. If you already have Phoenixd installed, a new version will be downloaded and installed automatically, but you'll be able to use the same wallet, channels, etc.
+
 ## Tech Stack
 - Tauri (Rust)
 - SvelteKit
 - Tailwind
 
 ## Development environment
+(to be improved)
 - Install Rust (https://www.rust-lang.org/tools/install)
 - Install Tauri v2 dependencies
 - Run "yarn run tauri dev"
