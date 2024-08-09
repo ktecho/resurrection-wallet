@@ -59,4 +59,3 @@ If you want to support the development of this project, you can donate to the fo
 **bolt12 offer**:  lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qvu5fzc7mvw4lj7xyvhec0qzk8u0e34yf8veq0xrjheq2z7c7jtxzqsz6le74p3jsfps737g8z7lwa2djxz7t0aklfkwglj9yqng36uqanzqqvafpk7w3mq28hf8ncckcd6v50ux4h8xjl2d5qphjt6lut560ee3wyvp9ezfqpf7a5xxxgkqn9ste2z29vnhqwkw9fwdjr39dzck2jx0qj7ccaym7c0y5qerxe9l2a80svzeu9f25qqs8u2us22c7zjah9ulpehwjknulg
 
 **Bitcoin onchain**:  bc1qxycgkfgnxhevts6uhhkzt46zfqzncgchpfgwlu
->>>>>>> 15f7779 (Adding contribution addresses)
