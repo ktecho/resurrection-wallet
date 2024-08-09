@@ -153,7 +153,11 @@
     }
 
     if (paymentType === "BOLT11") {
-      amount = decodedData.amount / 1000;
+      if (decodedData?.amount) {
+        amount = decodedData.amount / 1000;
+      } else {
+        amount = 0;
+      }
       message = decodedData.description || "";
 
       let whenExpires = new Date(
