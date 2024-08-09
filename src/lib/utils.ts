@@ -2,6 +2,9 @@ import { Command } from "@tauri-apps/plugin-shell";
 import { exists } from "@tauri-apps/plugin-fs";
 import { Store } from '@tauri-apps/plugin-store';
 import { join, appDataDir } from '@tauri-apps/api/path';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { ask } from '@tauri-apps/plugin-dialog';
 
 export let phoenixVersionLiteral = "phoenix-0.3.2-linux-x64";
 
@@ -95,5 +98,20 @@ export async function phoenixBinaryExists(): Promise<boolean> {
         return await exists(await join(appDirectory, "phoenixd"));
     } catch (error) {
         throw error;
+    }
+}
+
+export async function checkAndInstallUpdates() {
+    const update = await check();
+    console.log('--------------------update: ', update);
+    if (update?.available && await ask(`Update ${update.version} is available (you have ${update.currentVersion}).
+
+         Do you want to install the update?`, {
+        title: `Resurrection Wallet update available`,
+        kind: "info"
+    })) {
+        await update.downloadAndInstall();
+
+        await relaunch();
     }
 }

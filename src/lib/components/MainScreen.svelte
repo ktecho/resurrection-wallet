@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import Setup from "$lib/components/Setup.svelte";
-  import { formatDate, formatAmount, truncateString } from "$lib/utils";
+  import { formatDate, formatAmount, truncateString, checkAndInstallUpdates } from "$lib/utils";
   import {
     get_balance_sats,
     get_incoming_payments,
@@ -123,11 +123,13 @@
     ws = await setupPaymentsWebSocket();
 
     ws.addListener((msg) => {
-      if (msg.type !== "Ping" || msg.startsWith("WebSocket protocol error: Connection reset ")) {
+      if (msg.type !== "Ping") {
         console.debug("Received message from phoenixd:", msg);
         refreshEverything();
       }
     });
+
+    checkAndInstallUpdates();
   });
 
   onDestroy(() => {

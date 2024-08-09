@@ -29,6 +29,8 @@
     "store:allow-save",
     "store:allow-load",
     "updater:default",
+    "process:default",
+    "dialog:default",
     {
       "identifier": "http:default",
       "allow": [

@@ -28,7 +28,7 @@ export async function loadPhoenixHttpPassword() {
           ?.split('=')[1];
 
       if (httpPassword) {
-          console.log('HTTP Password:', httpPassword);
+          // console.log('HTTP Password:', httpPassword);
           password = httpPassword;
       } else {
           throw new Error('http-password not found in configuration file');

@@ -10,7 +10,7 @@ Features:
 - [x] Update balance and transactions automatically when a new payment is received / sent
 - [x] Create invoice and receive payments
 - [x] Pay bolt11 invoices
-- [x] Pay bol12 offers
+- [x] Pay bolt12 offers
 - [ ] Pay Lightning Addresses
 - [ ] Pay onchain addresses
 - [ ] Show fiat value in different currencies
