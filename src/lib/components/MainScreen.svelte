@@ -94,6 +94,7 @@
   }
   function closeSetup() {
     showSetup = false;
+    refreshEverything();
   }
 
   function handleFiatChange(event) {
@@ -122,7 +123,7 @@
     ws = await setupPaymentsWebSocket();
 
     ws.addListener((msg) => {
-      if (msg.type !== "Ping") {
+      if (msg.type !== "Ping" || msg.startsWith("WebSocket protocol error: Connection reset ")) {
         console.debug("Received message from phoenixd:", msg);
         refreshEverything();
       }

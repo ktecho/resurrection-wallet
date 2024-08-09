@@ -70,8 +70,6 @@
 
         const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
         if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
-
-        console.log("bitcoinNetwork Setup.svelte:", bitcoinNetwork);
       });
     } finally {
       isLoading = false;
