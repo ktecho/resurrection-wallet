@@ -9,6 +9,7 @@
     "core:path:default",
     "core:event:default",
     "core:window:default",
+    "core:window:allow-close",
     "core:app:default",
     "core:image:default",
     "core:resources:default",
@@ -16,12 +17,20 @@
     "core:tray:default",
     "shell:allow-open",
     "fs:default",
+    "fs:allow-localdata-write-recursive",
+    "fs:allow-localdata-read-recursive",
+    "fs:allow-temp-write-recursive",
+    "fs:allow-temp-read-recursive",
     "upload:default",
     "websocket:default",
+    "store:default",
     "store:allow-get",
     "store:allow-set",
     "store:allow-save",
     "store:allow-load",
+    "updater:default",
+    "process:default",
+    "dialog:default",
     {
       "identifier": "http:default",
       "allow": [
@@ -57,12 +66,21 @@
     },
     {
       "identifier": "fs:allow-exists",
+      "requireLiteralLeadingDot": false,
       "allow": [
         {
-          "path": "binaries/*"
+          "path": "$HOME/.phoenix/phoenix.conf"
         }
       ]
     },
-    "store:default"
+    {
+      "identifier": "fs:read-all",
+      "requireLiteralLeadingDot": false,
+      "allow": [
+        {
+          "path": "$HOME/.phoenix/phoenix.conf"
+        }
+      ]
+    }
   ]
 }

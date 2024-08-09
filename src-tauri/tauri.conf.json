@@ -1,7 +1,7 @@
 {
   "productName": "resurrection_wallet",
-  "version": "0.0.1",
-  "identifier": "com.tauri.dev",
+  "version": "0.3.0",
+  "identifier": "com.resurrection.wallet",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:1420",
@@ -22,6 +22,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -30,5 +31,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFDNkI2NDAzQjA4NkE4NEMKUldSTXFJYXdBMlJyck90eGNCcFUySk16bkdsRmNDL2psS1Y1N0U1bHFVbFNVMU82NFdJc3N3U1IK",
+      "endpoints": [
+        "https://github.com/ktecho/resurrection-wallet/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

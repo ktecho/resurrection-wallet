@@ -3,11 +3,13 @@
   import { get_node_info } from "$lib/phoenixdApi";
   import { setupStore } from "$lib/setupStore";
   import { startPhoenixd, copyToClipboard } from "$lib/utils";
+  import { getVersion } from "@tauri-apps/api/app";
 
   export let selectedFiat = "USD";
   let bitcoinNetwork = "mainnet";
   let isLoading = false;
   let nodeInfo = null;
+  let appVersion = null;
 
   const dispatch = createEventDispatcher();
 
@@ -63,6 +65,8 @@
     try {
       await getNodeInfo();
 
+      appVersion = await getVersion();
+
       // Load saved settings from the store
       setupStore.subscribe((store) => {
         const savedFiat = store.find(([key]) => key === "selectedFiat");
@@ -70,8 +74,6 @@
 
         const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
         if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
-
-        console.log("bitcoinNetwork Setup.svelte:", bitcoinNetwork);
       });
     } finally {
       isLoading = false;
@@ -90,6 +92,10 @@
       <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">
         Setup
       </h3>
+
+      <div class="mt-4 px-7 py-3">
+        <div><strong>Resurrection Wallet version:</strong> {appVersion}</div>
+      </div>
 
       <div class="mt-4 px-7 py-3">
         <label
@@ -183,8 +189,19 @@
                         on:click={() => copyToClipboard(channel.channelId)}
                         title="Copy full Channel ID"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
                         </svg>
                       </button></td
                     >

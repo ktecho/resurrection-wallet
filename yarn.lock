@@ -399,6 +399,13 @@
     "@tauri-apps/cli-win32-ia32-msvc" "2.0.0-rc.1"
     "@tauri-apps/cli-win32-x64-msvc" "2.0.0-rc.1"
 
+"@tauri-apps/plugin-dialog@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-dialog/-/plugin-dialog-2.0.0-rc.0.tgz#8149b6d2ef0a199c9239171d1966c4f87e8fd5dd"
+  integrity sha512-DPOXYe8SQ6Radk/67EOdaomlxL7oF99JO/ZUaPp1IBEs3Wro7lhlz63CfdKIBfKIZTLJLzP1R7/EiPL/GTA3Bg==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
 "@tauri-apps/plugin-fs@^2.0.0-rc.0":
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-fs/-/plugin-fs-2.0.0-rc.0.tgz#9d21a3111df05d3d01e90fc1986adf7fb5b8e19a"
@@ -413,6 +420,13 @@
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 
+"@tauri-apps/plugin-process@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-process/-/plugin-process-2.0.0-rc.0.tgz#0bec4448b655f56cb55fcd6e8cdf1dd69d7ffa7b"
+  integrity sha512-Z12D/kmQzG1vCVf+jLXPhPDUA0pEjFrsg4p0uwO2sotVLM9287IuTM+aIz9cuAYOxFLKcsnDG7amSCL9IfA1gw==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
 "@tauri-apps/plugin-shell@^2.0.0-rc.0":
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-shell/-/plugin-shell-2.0.0-rc.0.tgz#41645da666375930f95ee2155fb9dd5a02874952"
@@ -424,6 +438,13 @@
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-store/-/plugin-store-2.0.0-rc.0.tgz#74ec5ea63200a5184bc9455c799cff9fa8a58589"
   integrity sha512-KqiEzq6EdRwxrl0/FwyNLwumDBM91xTchdu2a8vfkNub30GuP9z7RskP9ifVRI1gbxfa5TUDi0hKFk/SP7TANQ==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
+"@tauri-apps/plugin-updater@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-updater/-/plugin-updater-2.0.0-rc.0.tgz#6d6610ff7ce749423884798a73118e54e7330672"
+  integrity sha512-EKajf/sBpFif0cwXhTo3BmNvTZ2t2DDLRyhA8FFKugZNoOeqU97bHhPT5DIqMUPRE1tyDk9o7sXm8dKf7oz+EA==
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 

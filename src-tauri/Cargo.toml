@@ -1,6 +1,6 @@
 [package]
 name = "resurrection_wallet"
-version = "0.0.1"
+version = "0.3.0"
 description = "Resurrection Wallet"
 authors = ["btc_remnant"]
 edition = "2021"
@@ -20,6 +20,8 @@ tauri-plugin-fs = "2.0.0-rc.0"
 tauri-plugin-upload = "2.0.0-rc.0"
 tauri-plugin-websocket = "2.0.0-rc.0"
 tauri-plugin-store = "2.0.0-rc.0"
+tauri-plugin-process = "2.0.0-rc.0"
+tauri-plugin-dialog = "2.0.0-rc.0"
 bardecoder = "0.5.0"
 nokhwa = { git = "https://github.com/l1npengtul/nokhwa.git", branch = "0.10", default-features = false, features = ["decoding", "input-v4l", "input-avfoundation", "output-threaded"] }
 image = { version = "0.24", features = ["jpeg"] }
@@ -28,6 +30,9 @@ base64 = "0.21"
 [target.'cfg(target_os="linux")'.dependencies]
 v4l = "0.14"
 #v4l2-sys-mit = "0.3"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2.0.0-rc.0"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.

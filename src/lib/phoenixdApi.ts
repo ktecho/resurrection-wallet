@@ -1,11 +1,49 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import WebSocket from '@tauri-apps/plugin-websocket';
+import { exists, readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 let host = "127.0.0.1";
 let port = "9740";
-let password = "d1aee2fbe9def384f1b92a3f64106a236140fed80f1ceb06e4e107edc6db47a4";
 
-export function get_auth_headers() {
+let password: string | null = null;
+
+export async function loadPhoenixHttpPassword() {
+  const configPath = ".phoenix/phoenix.conf";
+
+  try {
+      if (!await exists(configPath, { baseDir: BaseDirectory.Home })) {
+          throw new Error('Configuration file not found');
+      }
+  } catch (error) {
+      console.error('Error while checking if phoenix.conf exists:', error);
+      throw error;
+  }
+
+  try {
+      const content = await readTextFile(configPath, { baseDir: BaseDirectory.Home });
+
+      const httpPassword = content
+          .split('\n')
+          .find(line => line.startsWith('http-password='))
+          ?.split('=')[1];
+
+      if (httpPassword) {
+          // console.log('HTTP Password:', httpPassword);
+          password = httpPassword;
+      } else {
+          throw new Error('http-password not found in configuration file');
+      }
+  } catch (error) {
+      console.error('Error while reading Phoenix HTTP password from phoenix.conf:', error);
+      throw error;
+  }
+}
+
+export async function get_auth_headers() {
+  if (password === null) {
+    await loadPhoenixHttpPassword();
+  }
+
   const headers = new Headers();
   headers.append(
     "Authorization",
@@ -15,7 +53,7 @@ export function get_auth_headers() {
 }
 
 export async function get_balance_sats() {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/getbalance`, {
     method: "GET",
@@ -35,7 +73,7 @@ export async function get_balance_sats() {
 }
 
 export async function get_node_info() {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/getinfo`, {
     method: "GET",
@@ -53,7 +91,7 @@ export async function get_node_info() {
 }
 
 export async function get_incoming_payments() {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/payments/incoming`, {
     method: "GET",
@@ -71,7 +109,7 @@ export async function get_incoming_payments() {
 }
 
 export async function get_outgoing_payments() {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/payments/outgoing`, {
     method: "GET",
@@ -89,7 +127,7 @@ export async function get_outgoing_payments() {
 }
 
 export async function create_invoice_bolt11(description: string = "", amount: number) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -113,7 +151,7 @@ export async function create_invoice_bolt11(description: string = "", amount: nu
 }
 
 export async function create_offer_bolt12() {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/getoffer`, {
     method: "GET",
@@ -133,7 +171,7 @@ export async function create_offer_bolt12() {
 
 export async function check_payment(paymentHash: string) {
   console.debug('check_payment - paymentHash: ', paymentHash);
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
 
   const response = await fetch(`http://${host}:${port}/payments/incoming/${paymentHash}`, {
     method: "GET",
@@ -150,7 +188,7 @@ export async function check_payment(paymentHash: string) {
 }
 
 export async function decode_bolt11_invoice(invoice: string) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -173,7 +211,7 @@ export async function decode_bolt11_invoice(invoice: string) {
 }
 
 export async function decode_bolt12_offer(offer: string) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -195,7 +233,7 @@ export async function decode_bolt12_offer(offer: string) {
 }
 
 export async function pay_bolt11_invoice(invoice: string, amountSat: number) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -219,7 +257,7 @@ export async function pay_bolt11_invoice(invoice: string, amountSat: number) {
 }
 
 export async function pay_bolt12_offer(offer: string, amountSat: number, message: string) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -244,7 +282,7 @@ export async function pay_bolt12_offer(offer: string, amountSat: number, message
 }
 
 export async function pay_lightning_address(address: string, amountSat: number, message: string) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -269,7 +307,7 @@ export async function pay_lightning_address(address: string, amountSat: number, 
 }
 
 export async function pay_onchain_address(address: string, amountSat: number, feerateSatByte: number) {
-  const headers = get_auth_headers();
+  const headers = await get_auth_headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
   const params = new URLSearchParams();
@@ -296,7 +334,7 @@ export async function pay_onchain_address(address: string, amountSat: number, fe
 export async function setupPaymentsWebSocket(): Promise<WebSocket> {
   let ws: WebSocket;
   let options = {
-    headers: get_auth_headers()
+    headers: await get_auth_headers()
   };
 
   try {

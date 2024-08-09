@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { setupStore } from "$lib/setupStore";
-  import { startPhoenixd, phoenixBinaryExists } from "$lib/utils";
+  import { startPhoenixd, stopPhoenixd, phoenixBinaryExists } from "$lib/utils";
+  import { getCurrentWindow } from "@tauri-apps/api/window";
   import MainScreen from "$lib/components/MainScreen.svelte";
   import PhoenixdInstall from "$lib/components/PhoenixdInstall.svelte";
 
@@ -13,17 +14,16 @@
 
   async function handleSetupComplete() {
     phoenixdExists = true;
-    phoenixdRunning = await startPhoenixd();
+    phoenixdRunning = await startPhoenixd(bitcoinNetwork, 3000);
   }
 
   onMount(async () => {
-    await setupStore.load();  // Load setup data
+    await setupStore.load(); // Load setup data
 
     // Load saved settings from the store
     setupStore.subscribe((store) => {
       const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
       if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
-      console.log("bitcoinNetwork page.svelte:", bitcoinNetwork);
     });
 
     try {
@@ -37,6 +37,18 @@
     } finally {
       checking = false;
     }
+
+    const unlistenOnClose = await getCurrentWindow().onCloseRequested(
+      async (event) => {
+          // prevent the default window close behavior
+          event.preventDefault();
+
+          await stopPhoenixd();
+
+          unlistenOnClose();
+          getCurrentWindow().close();
+      },
+    );
   });
 </script>
 
