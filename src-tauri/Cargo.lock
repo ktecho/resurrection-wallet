@@ -3588,7 +3588,7 @@ dependencies = [
 
 [[package]]
 name = "resurrection_wallet"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bardecoder",
  "base64 0.21.7",
