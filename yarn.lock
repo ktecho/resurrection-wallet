@@ -420,6 +420,13 @@
   dependencies:
     "@tauri-apps/api" "^2.0.0-rc.0"
 
+"@tauri-apps/plugin-log@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-log/-/plugin-log-2.0.0-rc.0.tgz#2939245c94758c9b9a4a35c8e023147610cf4021"
+  integrity sha512-ztKfzUcq03dtr08vBu+xcwIEPusP6mCpuLAt6kpXEwG+HvYsC8e1/KFFokn3xvfwD+oBJ3UTL1h4kdM30GAqGw==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0-rc.0"
+
 "@tauri-apps/plugin-process@^2.0.0-rc.0":
   version "2.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-process/-/plugin-process-2.0.0-rc.0.tgz#0bec4448b655f56cb55fcd6e8cdf1dd69d7ffa7b"
@@ -587,6 +594,11 @@ browserslist@^4.23.3:
     electron-to-chromium "^1.5.4"
     node-releases "^2.0.18"
     update-browserslist-db "^1.1.0"
+
+btc2fiat@^0.1.23:
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/btc2fiat/-/btc2fiat-0.1.23.tgz#61905256fac1b7e1c50e1bf6ad892f248bd1216a"
+  integrity sha512-QInIKPRKS0k4agqjgn+bv0wOAlCGR631vdqTtnmBZse7a9zQFlYETmUHJkHktAGXcpxuizM1Ibr8kZW0QV7g2Q==
 
 buffer-crc32@^1.0.0:
   version "1.0.0"

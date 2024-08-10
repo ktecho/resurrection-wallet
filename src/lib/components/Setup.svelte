@@ -1,9 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
-  import { get_node_info } from "$lib/phoenixdApi";
-  import { setupStore } from "$lib/setupStore";
-  import { startPhoenixd, copyToClipboard } from "$lib/utils";
   import { getVersion } from "@tauri-apps/api/app";
+  import { setupStore } from "$lib/setupStore";
+  import { get_node_info } from "$lib/phoenixdApi";
+  import { startPhoenixd, copyToClipboard } from "$lib/utils";
+  import { fiatCurrencies } from "$lib/currency";
 
   export let selectedFiat = "USD";
   let bitcoinNetwork = "mainnet";
@@ -11,14 +12,10 @@
   let nodeInfo = null;
   let appVersion = null;
 
-  const dispatch = createEventDispatcher();
+  let showBalanceInFiat = true;
+  let showTransactionsInFiat = false;
 
-  let fiatCurrencies = [
-    { code: "USD", symbol: "$" },
-    { code: "EUR", symbol: "€" },
-    { code: "GBP", symbol: "£" },
-    { code: "JPY", symbol: "¥" },
-  ];
+  const dispatch = createEventDispatcher();
 
   function saveFiatSelection() {
     setupStore.update((store) => {
@@ -28,6 +25,23 @@
     });
 
     dispatch("fiatChange", { selectedFiat });
+  }
+
+  function saveDisplayPreferences() {
+    setupStore.update((store) => {
+      const newStore = store.filter(
+        ([key]) =>
+          !["showBalanceInFiat", "showTransactionsInFiat"].includes(key),
+      );
+      newStore.push(["showBalanceInFiat", showBalanceInFiat]);
+      newStore.push(["showTransactionsInFiat", showTransactionsInFiat]);
+      return newStore;
+    });
+
+    dispatch("displayPreferencesChange", {
+      showBalanceInFiat,
+      showTransactionsInFiat,
+    });
   }
 
   async function changeNetwork() {
@@ -74,6 +88,18 @@
 
         const savedNetwork = store.find(([key]) => key === "bitcoinNetwork");
         if (savedNetwork) bitcoinNetwork = savedNetwork[1] as string;
+
+        const savedShowBalanceInFiat = store.find(
+          ([key]) => key === "showBalanceInFiat",
+        );
+        if (savedShowBalanceInFiat)
+          showBalanceInFiat = savedShowBalanceInFiat[1] as boolean;
+
+        const savedShowTransactionsInFiat = store.find(
+          ([key]) => key === "showTransactionsInFiat",
+        );
+        if (savedShowTransactionsInFiat)
+          showTransactionsInFiat = savedShowTransactionsInFiat[1] as boolean;
       });
     } finally {
       isLoading = false;
@@ -110,11 +136,37 @@
           class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
           {#each fiatCurrencies as currency}
-            <option value={currency.code}
-              >{currency.symbol} {currency.code}</option
-            >
+            <option value={currency.code}>{currency.code}</option>
           {/each}
         </select>
+      </div>
+
+      <div class="mt-4 px-7 py-3">
+        <label class="flex items-center">
+          <input
+            type="checkbox"
+            bind:checked={showBalanceInFiat}
+            on:change={saveDisplayPreferences}
+            class="form-checkbox h-5 w-5 text-indigo-600"
+          />
+          <span class="ml-2 text-sm text-gray-700"
+            >Show balance in fiat currency</span
+          >
+        </label>
+      </div>
+
+      <div class="mt-2 px-7 py-3">
+        <label class="flex items-center">
+          <input
+            type="checkbox"
+            bind:checked={showTransactionsInFiat}
+            on:change={saveDisplayPreferences}
+            class="form-checkbox h-5 w-5 text-indigo-600"
+          />
+          <span class="ml-2 text-sm text-gray-700"
+            >Show transaction amounts in fiat currency</span
+          >
+        </label>
       </div>
 
       <hr class="my-6" />

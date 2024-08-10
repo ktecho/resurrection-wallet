@@ -3,6 +3,7 @@
   import { setupStore } from "$lib/setupStore";
   import { startPhoenixd, stopPhoenixd, phoenixBinaryExists } from "$lib/utils";
   import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { info, error } from '@tauri-apps/plugin-log';
   import MainScreen from "$lib/components/MainScreen.svelte";
   import PhoenixdInstall from "$lib/components/PhoenixdInstall.svelte";
 
@@ -18,7 +19,8 @@
   }
 
   onMount(async () => {
-    await setupStore.load(); // Load setup data
+    info("Starting Resurrection Wallet...");
+    await setupStore.load();
 
     // Load saved settings from the store
     setupStore.subscribe((store) => {
@@ -34,6 +36,7 @@
       }
     } catch (e) {
       console.error("Error while searching for or starting phoenixd:", e);
+      error("Error while searching for or starting phoenixd");
     } finally {
       checking = false;
     }

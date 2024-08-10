@@ -5,6 +5,7 @@ use nokhwa::utils::{RequestedFormat, RequestedFormatType, Resolution};
 use nokhwa::{nokhwa_initialize, pixel_format::RgbAFormat, query, utils::ApiBackend};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::Emitter;
+use tauri_plugin_log::{Target, TargetKind};
 
 static CAMERA_RUNNING: AtomicBool = AtomicBool::new(false);
 
@@ -33,7 +34,7 @@ async fn start_camera(app: tauri::AppHandle) -> Result<String, String> {
     let cameras = query(ApiBackend::Auto).map_err(|e| e.to_string())?;
     let first_camera = cameras.first().ok_or("No camera found")?;
 
-    let resolution = Resolution::new(640, 480);
+    let resolution = Resolution::new(800, 600);
     let format =
         RequestedFormat::new::<RgbFormat>(RequestedFormatType::HighestResolution(resolution));
     //let format = RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestFrameRate);
@@ -98,6 +99,15 @@ async fn start_camera(app: tauri::AppHandle) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::LogDir { file_name: None }),
+                    Target::new(TargetKind::Webview),
+                ])
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

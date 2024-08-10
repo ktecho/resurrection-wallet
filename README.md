@@ -8,19 +8,21 @@ Features:
 - [x] Use mainnet or testnet
 - [x] Read the password from phoenixd.conf
 - [x] Update balance and transactions automatically when a new payment is received / sent
+- [x] Show fiat value in different currencies
 - [x] Create invoice and receive payments
 - [x] Pay bolt11 invoices
 - [x] Pay bolt12 offers
-- [ ] Pay Lightning Addresses
-- [ ] Pay onchain addresses
-- [ ] Show fiat value in different currencies
-- [ ] Scan QR Codes to pay invoices/offers ---> it works, but it's not very reliable
+- [ ] Pay to Lightning Addresses
+- [ ] Pay to onchain addresses
+- [ ] Scan QR Codes to pay invoices/offers ---> it works, but it's not very reliable yet
 - [ ] Auto-update app
 - [ ] Auto-update Phoenixd
+- [ ] Support remote phoenixd
 - [ ] Manage the phoenixd process better
     - [ ] Detect if Phoenixd is running
     - [x] Kill Phoenixd when the app is closed
 - [ ] Detect WebSocket disconnections / manage reconnection
+- [ ] Have a splash screen while the app is loading
 
 Main Screen
 ![Main screen](screenshots/image1.png)

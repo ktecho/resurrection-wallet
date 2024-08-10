@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import Setup from "$lib/components/Setup.svelte";
-  import { formatDate, formatAmount, truncateString, checkAndInstallUpdates } from "$lib/utils";
+  import {
+    formatDate,
+    formatAmount,
+    truncateString,
+    checkAndInstallUpdates,
+  } from "$lib/utils";
   import {
     get_balance_sats,
     get_incoming_payments,
@@ -12,16 +17,13 @@
   import Receive from "./Receive.svelte";
   import Send from "./Send.svelte";
   import WebSocket from "@tauri-apps/plugin-websocket";
+  import { debug, info, error } from "@tauri-apps/plugin-log";
+  import { convertBtcToFiat, getPrefix, getSuffix } from "$lib/currency";
+  import { setupStore } from "$lib/setupStore";
 
-  let balanceSats = 0;
-  let balanceSatsFees = 0;
-  let usdPrice: number = 50000; // TODO: Get actual BTC price in fiat currency
-  let isRefreshing = false;
-  let showSatoshis = true;
-  let selectedFiat: string = "USD"; // This will be controlled by the Setup component
-  let showSetup = false;
-
-  let showNthFirstTransactions = 6;
+  let balanceSats: number = 0;
+  let balanceFiat: number = 0;
+  let balanceSatsFees: number = 0;
 
   let allTransactions = [];
   let visibleTransactions: any[] = [];
@@ -30,10 +32,26 @@
   let showModal = false;
   let showSendModal = false;
   let showReceiveModal = false;
+  let showSetup = false;
+  let showBalanceInFiat = true;
+  let showTransactionsInFiat = false;
+  let showSatoshis = true;
+  let selectedFiat: string = "USD";
+
+  let isRefreshing = false;
+  let showNthFirstTransactions = 6;
 
   let showAllDetails = false;
 
   let ws: WebSocket;
+
+  function openSetup() {
+    showSetup = true;
+  }
+  function closeSetup() {
+    showSetup = false;
+    refreshEverything();
+  }
 
   function closeReceiveModal() {
     showReceiveModal = false;
@@ -54,8 +72,6 @@
     showSendModal = true;
   }
 
-  $: fiatBalance = (balanceSats / 100000000) * usdPrice;
-
   async function refreshEverything() {
     isRefreshing = true;
 
@@ -63,12 +79,19 @@
     const incoming_payments = await get_incoming_payments();
     const outgoing_payments = await get_outgoing_payments();
 
+    if (showBalanceInFiat) {
+      const btcAmount = balanceSats / 100000000; // Convert sats to BTC
+      balanceFiat = await convertBtcToFiat(btcAmount, selectedFiat);
+    }
+
     isRefreshing = false;
 
     console.log("incoming_payments", incoming_payments);
 
     allTransactions = [...incoming_payments, ...outgoing_payments];
-    console.log("allTransactions", allTransactions);
+
+    console.debug("allTransactions", allTransactions);
+    debug("allTransactions to show: " + JSON.stringify(allTransactions));
 
     // Order transactions by date, most recent first
     allTransactions.sort((a, b) => b.createdAt - a.createdAt);
@@ -89,17 +112,15 @@
     showSatoshis = !showSatoshis;
   }
 
-  function openSetup() {
-    showSetup = true;
-  }
-  function closeSetup() {
-    showSetup = false;
+  function handleFiatChange(event) {
+    selectedFiat = event.detail.selectedFiat;
     refreshEverything();
   }
 
-  function handleFiatChange(event) {
-    selectedFiat = event.detail.selectedFiat;
-    // TODO: save selectedFiat to localStorage
+  function handleDisplayPreferencesChange(event) {
+    showBalanceInFiat = event.detail.showBalanceInFiat;
+    showTransactionsInFiat = event.detail.showTransactionsInFiat;
+    refreshEverything();
   }
 
   async function openTransactionDetails(transaction) {
@@ -117,19 +138,48 @@
     showAllDetails = !showAllDetails;
   }
 
+  $: if (balanceSats || selectedFiat) {
+    updateFiatBalance();
+  }
+
+  async function updateFiatBalance() {
+    const btcAmount = balanceSats / 100000000; // Convert sats to BTC
+    balanceFiat = await convertBtcToFiat(btcAmount, selectedFiat);
+  }
+
   onMount(async () => {
     await refreshEverything();
+
+    updateFiatBalance();
 
     ws = await setupPaymentsWebSocket();
 
     ws.addListener((msg) => {
-      if (msg.type !== "Ping") {
-        console.debug("Received message from phoenixd:", msg);
+      if (msg.type !== "Ping" && msg.type !== "Close") {
+        console.debug("Received message from phoenixd :", msg);
         refreshEverything();
       }
     });
 
     checkAndInstallUpdates();
+
+    // Load saved settings from the store
+    setupStore.subscribe((store) => {
+      const savedFiat = store.find(([key]) => key === "selectedFiat");
+      if (savedFiat) selectedFiat = savedFiat[1] as string;
+
+      const savedShowBalanceInFiat = store.find(
+        ([key]) => key === "showBalanceInFiat",
+      );
+      if (savedShowBalanceInFiat)
+        showBalanceInFiat = savedShowBalanceInFiat[1] as boolean;
+
+      const savedShowTransactionsInFiat = store.find(
+        ([key]) => key === "showTransactionsInFiat",
+      );
+      if (savedShowTransactionsInFiat)
+        showTransactionsInFiat = savedShowTransactionsInFiat[1] as boolean;
+    });
   });
 
   onDestroy(() => {
@@ -184,10 +234,12 @@
             {(balanceSats / 100000000).toFixed(8)} BTC
           {/if}
         </p>
-        <p class="text-xl text-gray-600">
-          ${fiatBalance.toFixed(2)}
-          {selectedFiat}
-        </p>
+        {#if showBalanceInFiat}
+          <p class="text-xl text-gray-600">
+            {getPrefix(selectedFiat)}{balanceFiat}
+            {getSuffix(selectedFiat)}
+          </p>
+        {/if}
         {#if balanceSatsFees > 0}
           <p class="aatext-lg text-gray-600 mt-2">
             ({balanceSatsFees} sats)
@@ -321,14 +373,28 @@
             >
               {truncateString(transaction.description)}
             </td>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-sm text-center {transaction.isPaid
-                ? 'font-bold'
-                : ''}"
-            >
-              {transaction.receivedSat
-                ? transaction.receivedSat
-                : transaction.sent} sats
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+              <span class={transaction.isPaid ? "font-bold" : ""}>
+                {transaction.receivedSat
+                  ? transaction.receivedSat
+                  : transaction.sent} sats
+              </span>
+
+              {#if showTransactionsInFiat}
+                <span>
+                  - {getPrefix(
+                    selectedFiat,
+                  )}{#await convertBtcToFiat(transaction.receivedSat ? transaction.receivedSat : transaction.sent, selectedFiat, true)}
+                    <p>...waiting</p>
+                  {:then amountFiat}
+                    {amountFiat}
+                  {:catch error}
+                    <p style="color: red">{error.message}</p>
+                  {/await}
+
+                  {getSuffix(selectedFiat)}
+                </span>
+              {/if}
             </td>
             <td
               class="px-6 py-4 whitespace-nowrap text-sm text-center {transaction.isPaid
@@ -449,8 +515,11 @@
 {#if showSetup}
   <Setup
     {selectedFiat}
+    {showBalanceInFiat}
+    {showTransactionsInFiat}
     on:close={closeSetup}
     on:fiatChange={handleFiatChange}
+    on:displayPreferencesChange={handleDisplayPreferencesChange}
   />
 {/if}
 
