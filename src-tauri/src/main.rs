@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::codecs::jpeg::JpegEncoder;
-use nokhwa::pixel_format::RgbFormat;
+use image::{DynamicImage, GrayImage, ImageBuffer, Rgba};
 use nokhwa::utils::{RequestedFormat, RequestedFormatType, Resolution};
 use nokhwa::{nokhwa_initialize, pixel_format::RgbAFormat, query, utils::ApiBackend};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -28,28 +28,45 @@ async fn start_camera(app: tauri::AppHandle) -> Result<String, String> {
     CAMERA_RUNNING.store(true, Ordering::SeqCst);
 
     nokhwa_initialize(|granted| {
-        println!("User said {}", granted);
+        println!("Permission to use the camera: {}", granted);
     });
 
     let cameras = query(ApiBackend::Auto).map_err(|e| e.to_string())?;
     let first_camera = cameras.first().ok_or("No camera found")?;
 
-    let resolution = Resolution::new(800, 600);
-    let format =
-        RequestedFormat::new::<RgbFormat>(RequestedFormatType::HighestResolution(resolution));
-    //let format = RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestFrameRate);
+    let format = RequestedFormat::new::<RgbAFormat>(RequestedFormatType::HighestResolution(
+        Resolution::new(640, 480),
+    ));
+
+//  let format = RequestedFormat::new::<RgbAFormat>(RequestedFormatType::AbsoluteHighestResolution);
+
     let mut camera =
         nokhwa::Camera::new(first_camera.index().clone(), format).map_err(|e| e.to_string())?;
 
-    //camera.set_frame_rate(30).map_err(|e| e.to_string())?;
-
     camera.open_stream().map_err(|e| e.to_string())?;
+
+    let decoder = bardecoder::default_decoder();
+    let mut buffer = Vec::new();
+
+    let mut frame_count = 0;
 
     while CAMERA_RUNNING.load(Ordering::SeqCst) {
         let frame = camera.frame().map_err(|e| e.to_string())?;
         let image = frame
             .decode_image::<RgbAFormat>()
             .map_err(|e| e.to_string())?;
+
+        // Convertir la imagen a escala de grises
+        let gray_image: GrayImage = DynamicImage::ImageRgba8(image.clone()).into_luma8();
+
+        // Convertir la imagen en escala de grises de vuelta a RGBA
+        let width = gray_image.width();
+        let height = gray_image.height();
+        let rgba_image: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_fn(width, height, |x, y| {
+                let gray = gray_image.get_pixel(x, y).0[0];
+                Rgba([gray, gray, gray, 255])
+            });
 
         println!(
             "Image from camera {}x{} {}",
@@ -58,38 +75,40 @@ async fn start_camera(app: tauri::AppHandle) -> Result<String, String> {
             image.len()
         );
 
-        let decoder = bardecoder::default_decoder();
-        let results = decoder.decode(&image);
+        let results = decoder.decode(&rgba_image);
         for result in results {
             if let Ok(content) = result {
                 println!("     ----- Decode QR !!!!!!!!!! {}", content);
+
                 app.emit("qr-detected", content)
                     .map_err(|e| e.to_string())?;
+
                 CAMERA_RUNNING.store(false, Ordering::SeqCst);
             }
         }
 
-        // Convert to JPEG
-        let mut buffer = Vec::new();
-        let mut encoder = JpegEncoder::new_with_quality(&mut buffer, 20);
-        encoder
-            .encode(
-                image.as_raw(),
-                image.width(),
-                image.height(),
-                image::ColorType::Rgba8,
-            )
-            .map_err(|e| e.to_string())?;
+        // Emitir 50% of images to the front-end
+        if frame_count % 2 == 0 {
+            // Convert to JPEG
+            buffer.clear();
+            let mut encoder = JpegEncoder::new_with_quality(&mut buffer, 25);
+            encoder
+                .encode(
+                    image.as_raw(),
+                    image.width(),
+                    image.height(),
+                    image::ColorType::Rgba8,
+                )
+                .map_err(|e| e.to_string())?;
 
-        // Convertir JPEG a base64
-        let base64 = general_purpose::STANDARD.encode(&buffer);
+            println!("     ----- Emitting camera-frame to front-end !!!!!!!!!!");
+            app.emit("camera-frame", general_purpose::STANDARD.encode(&buffer))
+                .map_err(|e| e.to_string())?;
+        }
 
-        // Enviar el frame al frontend
-        println!("     ----- Emitting camera-frame to front-end !!!!!!!!!!");
-        app.emit("camera-frame", base64)
-            .map_err(|e| e.to_string())?;
+        frame_count += 1;
 
-        //std::thread::sleep(std::time::Duration::from_millis(1));
+        std::thread::sleep(std::time::Duration::from_millis(100));
     }
 
     camera.stop_stream().map_err(|e| e.to_string())?;

@@ -71,7 +71,7 @@
     const canvas = document.getElementById("qr-image");
     const ctx = canvas.getContext("2d");
 
-    listen("camera-frame", (event) => {
+    const unlistenCameraFrame = await listen("camera-frame", (event) => {
       const img = new Image();
       img.onload = () => {
         canvas.width = img.width;
@@ -81,14 +81,25 @@
       img.src = "data:image/jpeg;base64," + event.payload;
     });
 
-    listen("qr-detected", (event) => {
+    const unlistenQRDetected = await listen("qr-detected", async (event) => {
       console.log("QR Code detected:", event.payload);
-
-      hideImage();
 
       invoiceField = event.payload;
 
-      previewPayment();
+      let result = await previewPayment();
+      console.log("---------------------------- Result:", result);
+      if (result === "not_valid") {
+        hideErrorMessage();
+        invoiceField = "";
+
+        const resultado = await invoke("start_camera");
+        console.log(resultado);
+      } else {
+        hideImage();
+
+        unlistenCameraFrame();
+        unlistenQRDetected();
+      }
     });
 
     try {
@@ -119,11 +130,11 @@
     previewPayment();
   }
 
-  async function previewPayment() {
+  async function previewPayment(): Promise<string> {
     hideErrorMessage();
 
     if (invoiceField.trim() === "") {
-      return;
+      return "not_valid: " + invoiceField;
     }
 
     if (paymentType !== "Lightning Address") {
@@ -147,7 +158,7 @@
 
           decodedData = null;
 
-          return;
+          return "not_valid";
         }
       }
     }
@@ -167,11 +178,13 @@
 
       if (amount > balanceSats) {
         showErrorMessage("Insufficient funds. Current balance: " + balanceSats);
-        return;
+        return "insufficient_funds";
       }
     }
 
     showPreviewButton = false;
+
+    return "valid";
   }
 
   async function payNow() {
@@ -185,11 +198,11 @@
       let pay_bolt11_response = await pay_bolt11_invoice(invoiceField, amount);
       console.log(
         "----------------------------  pay_bolt11_response:",
-        pay_bolt11_response
+        pay_bolt11_response,
       );
       console.log(
         "----------------------------  pay_bolt11_response.reason:",
-        pay_bolt11_response.reason
+        pay_bolt11_response.reason,
       );
 
       if (pay_bolt11_response.hasOwnProperty("reason")) {
@@ -201,12 +214,15 @@
 
         paymentOK = true;
       }
-
     } else if (paymentType === "BOLT12") {
-      let pay_bolt12_response = await pay_bolt12_offer(invoiceField, amount, message);
+      let pay_bolt12_response = await pay_bolt12_offer(
+        invoiceField,
+        amount,
+        message,
+      );
       console.log(
         "----------------------------  pay_bolt12_offer:",
-        pay_bolt12_response
+        pay_bolt12_response,
       );
 
       if (!pay_bolt12_response.hasOwnProperty("recipientAmountSat")) {
@@ -218,12 +234,15 @@
 
         paymentOK = true;
       }
-
     } else if (paymentType === "Lightning Address") {
-      let pay_lightning_address_response = await pay_lightning_address(invoiceField, amount, message);
+      let pay_lightning_address_response = await pay_lightning_address(
+        invoiceField,
+        amount,
+        message,
+      );
       console.log(
         "----------------------------  pay_lightning_address:",
-        pay_lightning_address_response
+        pay_lightning_address_response,
       );
 
       if (false) {

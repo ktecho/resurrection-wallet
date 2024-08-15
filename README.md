@@ -15,7 +15,7 @@ Features:
 - [ ] Pay to Lightning Addresses
 - [ ] Pay to onchain addresses
 - [ ] Scan QR Codes to pay invoices/offers ---> it works, but it's not very reliable yet
-- [ ] Auto-update app
+- [x] Auto-update app
 - [ ] Auto-update Phoenixd
 - [ ] Support remote phoenixd
 - [ ] Manage the phoenixd process better
@@ -37,6 +37,14 @@ Setup Screen
 Download the latest release from the [releases page](https://github.com/ktecho/resurrection-wallet/releases/latest) and run it. AppImages are recommended because they'll be easier to update to the next version.
 
 It will prompt you to install Phoenixd automatically. If you already have Phoenixd installed, a new version will be downloaded and installed automatically, but you'll be able to use the same wallet, channels, etc.
+
+### Fedora users
+
+You need to install the following dependencies to be able to run phoenixd (see phoenixd issue [#89](https://github.com/ACINQ/phoenixd/issues/89)):
+
+```
+sudo dnf install libxcrypt-compat
+```
 
 ## Tech Stack
 - Tauri (Rust)
