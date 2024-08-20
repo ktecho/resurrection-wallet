@@ -1,6 +1,8 @@
 # Resurrection Wallet
 Resurrection Wallet is a frontend for [Phoenixd](https://github.com/phoenixrails/phoenixd), a lightweight, non-custodial Bitcoin wallet with some advanced features like auto-liquidity.
 
+![Main screen](images/LogoResurrectionWallet.jpeg)
+
 Features:
 - [x] Linux x86_64 support
 - [ ] MacOS support
@@ -25,13 +27,13 @@ Features:
 - [ ] Have a splash screen while the app is loading
 
 Main Screen
-![Main screen](screenshots/image1.png)
+![Main screen](images/screenshots/image1.png)
 
 Transaction details
-![Transaction details](screenshots/image2.png)
+![Transaction details](images/screenshots/image2.png)
 
 Setup Screen
-![Setup Screen](screenshots/image3.png)
+![Setup Screen](images/screenshots/image3.png)
 ## Installation
 
 Download the latest release from the [releases page](https://github.com/ktecho/resurrection-wallet/releases/latest) and run it. AppImages are recommended because they'll be easier to update to the next version.
