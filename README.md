@@ -1,5 +1,5 @@
 # Resurrection Wallet
-Resurrection Wallet is a frontend for [Phoenixd](https://github.com/phoenixrails/phoenixd), a lightweight, non-custodial Bitcoin wallet with some advanced features like auto-liquidity.
+Resurrection Wallet is a frontend for [Phoenixd](https://github.com/ACINQ/phoenixd), a lightweight, non-custodial Bitcoin wallet with some advanced features like auto-liquidity.
 
 ![Main screen](images/LogoResurrectionWallet.jpeg)
 
