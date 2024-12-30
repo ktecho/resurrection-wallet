@@ -59,6 +59,7 @@ sudo dnf install libxcrypt-compat
 - Install Tauri v2 dependencies:
   - Run "sudo apt install nodejs libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev"
 - Run "cd src-tauri && cargo build && cd .."
+- Run "npm i"
 - Run "yarn run tauri dev"
   - If you don't yarn, you can install it by running "sudo npm install --global yarn"
 
